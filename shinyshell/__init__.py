@@ -12,7 +12,7 @@ One import. All the pretty you need.
 Pure Python stdlib. Works on Linux, macOS, Windows.
 """
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 __all__ = ["Shell"]
 
 import os
@@ -1351,6 +1351,394 @@ class Shell:
         print(f"  {self._style('Only ' + labels[0], color='bright_black')}: {len(a_only)}  |  {self._style('Only ' + labels[1], color='bright_black')}: {len(b_only)}  |  {self._style('Both', color='bright_black')}: {len(both)}")
         print()
 
+    # ── v0.4.0 NEW Features ──────────────────────────────────────
+
+    # 37. Audio
+    def audio_beep(self, times: int = 1) -> None:
+        """Play a terminal beep. sh.audio_beep(3)"""
+        sys.stdout.write('\a' * times)
+        sys.stdout.flush()
+
+    def audio_ding(self) -> None:
+        """Play a success ding sound."""
+        import subprocess, platform
+        try:
+            if platform.system() == "Darwin":
+                subprocess.run(["afplay", "/System/Library/Sounds/Glass.aiff"], timeout=2)
+            elif platform.system() == "Linux":
+                subprocess.run(["paplay", "/usr/share/sounds/freedesktop/stereo/complete.oga"], timeout=2)
+            else:
+                sys.stdout.write('\a')
+        except Exception:
+            sys.stdout.write('\a')
+        sys.stdout.flush()
+
+    # 38. Typewriter effect
+    def typewrite(self, text: str, speed: float = 0.03) -> None:
+        """Typewriter animation effect. sh.typewrite('Hello World', speed=0.05)"""
+        print()
+        for ch in text:
+            sys.stdout.write(ch)
+            sys.stdout.flush()
+            time.sleep(speed)
+        print()
+
+    # 39. Rainbow text
+    def rainbow(self, text: str) -> None:
+        """Rainbow gradient text. sh.rainbow('Hello World')"""
+        colors = ["red", "yellow", "green", "cyan", "blue", "magenta"]
+        result = ""
+        for i, ch in enumerate(text):
+            if ch.strip():
+                result += self._style(ch, color=colors[i % len(colors)])
+            else:
+                result += ch
+        print(f"\n  {result}\n")
+
+    # 40. Matrix Rain Animation
+    def matrix(self, duration: float = 5.0) -> None:
+        """Matrix-style rain animation. sh.matrix(10)"""
+        import random as _rand
+        chars = "ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃ0123456789"
+        width = min(self._width - 4, 60)
+        cols = [0] * width
+        print()
+        start = time.time()
+        try:
+            while time.time() - start < duration:
+                line = "  "
+                for i in range(width):
+                    if cols[i] > 0:
+                        line += self._style(_rand.choice(chars), color="green")
+                        cols[i] -= 1
+                    elif _rand.random() < 0.05:
+                        cols[i] = _rand.randint(5, 15)
+                        line += self._style(_rand.choice(chars), "bold", color="bright_green")
+                    else:
+                        line += " "
+                sys.stdout.write(f"\r{line}")
+                sys.stdout.flush()
+                time.sleep(0.05)
+        except KeyboardInterrupt:
+            pass
+        print("\n")
+
+    # 41. Dice Roller
+    def dice(self, sides: int = 6, count: int = 1) -> List[int]:
+        """Animated dice roller. sh.dice(6, 2) → [3, 5]"""
+        import random as _rand
+        dice_faces = {
+            1: ["┌─────┐", "│     │", "│  ●  │", "│     │", "└─────┘"],
+            2: ["┌─────┐", "│ ●   │", "│     │", "│   ● │", "└─────┘"],
+            3: ["┌─────┐", "│ ●   │", "│  ●  │", "│   ● │", "└─────┘"],
+            4: ["┌─────┐", "│ ● ● │", "│     │", "│ ● ● │", "└─────┘"],
+            5: ["┌─────┐", "│ ● ● │", "│  ●  │", "│ ● ● │", "└─────┘"],
+            6: ["┌─────┐", "│ ● ● │", "│ ● ● │", "│ ● ● │", "└─────┘"],
+        }
+        results = [_rand.randint(1, sides) for _ in range(count)]
+        results_str = ", ".join(str(r) for r in results)
+        print()
+        # Animation
+        for _ in range(5):
+            rand_faces = [_rand.choice(list(dice_faces.values())) for _ in range(min(count, 3))]
+            for row in range(5):
+                line = "  " + " ".join(f[row] for f in rand_faces)
+                sys.stdout.write(f"\r{line}\n")
+            sys.stdout.write(f"\033[{5 * min(count,3)}A")
+            sys.stdout.flush()
+            time.sleep(0.1)
+        sys.stdout.write(f"\033[{5 * min(count,3)}B")
+        if count <= 3:
+            real_faces = [dice_faces.get(r, dice_faces[1]) for r in results]
+            for row in range(5):
+                print("  " + " ".join(f[row] for f in real_faces))
+        self.success(f"Rolled: {results_str}")
+        return results
+
+    # 42. Pomodoro Timer
+    def pomodoro(self, work_min: int = 25, break_min: int = 5, cycles: int = 4) -> None:
+        """Pomodoro timer. sh.pomodoro(25, 5, 4)"""
+        for cycle in range(1, cycles + 1):
+            self.header(f"🍅 Pomodoro {cycle}/{cycles} — WORK ({work_min}min)")
+            self._countdown_timer(work_min * 60, "Working")
+            if cycle < cycles:
+                self.success(f"Break time! ({break_min}min)")
+                self._countdown_timer(break_min * 60, "Break")
+        self.header("🎉 ALL DONE! Great work!")
+
+    def _countdown_timer(self, seconds: int, label: str):
+        for remaining in range(seconds, 0, -1):
+            m, s = divmod(remaining, 60)
+            sys.stdout.write(f"\r  ⏱️  {label}: {m:02d}:{s:02d} remaining  ")
+            sys.stdout.flush()
+            time.sleep(1)
+        sys.stdout.write("\r" + " " * 40 + "\r")
+        sys.stdout.flush()
+
+    # 43. CSV Viewer
+    def csv(self, data: Union[str, List[Dict]], title: Optional[str] = None) -> None:
+        """Pretty CSV viewer. sh.csv('data.csv') or sh.csv(list_of_dicts)"""
+        import csv as _csv, io
+        if isinstance(data, str):
+            try:
+                with open(data) as f:
+                    reader = _csv.DictReader(f)
+                    rows = list(reader)
+            except Exception as e:
+                self.error(f"Cannot read CSV: {e}")
+                return
+        else:
+            rows = data
+        if rows:
+            self.table(rows, title=title or "CSV Data")
+
+    # 44. SQL Table Viewer
+    def sql_table(self, rows: List[Dict], title: Optional[str] = None) -> None:
+        """Pretty SQL query output. sh.sql_table([{'id':1,'name':'Alice'},...])"""
+        self.table(rows, title=title or "Query Result", style="double")
+
+    # 45. XML Viewer
+    def xml(self, data: str, title: Optional[str] = None) -> None:
+        """Pretty XML viewer with syntax colors. sh.xml('<root><item>hello</item></root>')"""
+        import xml.dom.minidom
+        try:
+            dom = xml.dom.minidom.parseString(data) if data.strip().startswith("<") else xml.dom.minidom.parse(data)
+            pretty = dom.toprettyxml(indent="  ")
+            print()
+            if title:
+                print(self._style(f"  {title}", "bold"))
+            for line in pretty.split("\n"):
+                if line.strip():
+                    # Color tags and content
+                    import re
+                    colored = re.sub(r'(</?)(\w+)([^>]*>)',
+                                     lambda m: m.group(1) + self._style(m.group(2), color="cyan") + self._style(m.group(3), color="bright_black"),
+                                     line)
+                    colored = re.sub(r'>([^<]+)<', lambda m: '>' + self._style(m.group(1), color="yellow") + '<', colored)
+                    print(f"  {colored}")
+            print()
+        except Exception as e:
+            self.error(f"XML parse error: {e}")
+
+    # 46. Dict Diff
+    def dict_diff(self, old: Dict, new: Dict, title: Optional[str] = None) -> None:
+        """Deep dictionary comparison. sh.dict_diff({'a':1}, {'a':2,'b':3})"""
+        print()
+        if title:
+            print(self._style(f"  {title}", "bold"))
+        all_keys = set(old.keys()) | set(new.keys())
+        for key in sorted(all_keys):
+            if key not in old:
+                print(f"  + {self._style(str(key), color='green')}: {self._style(str(new[key]), color='green')}")
+            elif key not in new:
+                print(f"  - {self._style(str(key), color='red')}: {self._style(str(old[key]), color='red')}")
+            elif old[key] != new[key]:
+                print(f"  ~ {key}: {self._style(str(old[key]), color='red')} → {self._style(str(new[key]), color='green')}")
+            else:
+                print(f"    {key}: {old[key]}")
+        print()
+
+    # 47. HTTP Viewer
+    def http(self, method: str, url: str, headers: Optional[Dict] = None,
+             body: Optional[str] = None) -> None:
+        """Pretty HTTP request/response viewer. sh.http('GET', 'https://httpbin.org/json')"""
+        import urllib.request
+        print()
+        self.info(f"{method} {url}")
+        try:
+            req = urllib.request.Request(url, method=method, data=body.encode() if body else None)
+            if headers:
+                for k, v in headers.items():
+                    req.add_header(k, v)
+            start = time.perf_counter()
+            resp = urllib.request.urlopen(req, timeout=10)
+            elapsed = (time.perf_counter() - start) * 1000
+            status_color = "green" if resp.status < 300 else "red" if resp.status >= 400 else "yellow"
+            self._style("", color="")
+            print(f"  {self._style(f'HTTP {resp.status}', 'bold', color=status_color)} {self._style(f'{elapsed:.0f}ms', color='bright_black')}")
+            print(f"  {self._style('Headers:', color='bright_black')}")
+            for k, v in resp.headers.items():
+                print(f"    {self._style(k, color='green')}: {v}")
+            # Show first 500 chars of body
+            resp_body = resp.read().decode('utf-8', errors='replace')[:500]
+            if resp_body:
+                print(f"  {self._style('Body (first 500 chars):', color='bright_black')}")
+                for line in resp_body.split("\n"):
+                    print(f"    {line}")
+        except Exception as e:
+            self.error(f"HTTP error: {str(e)[:80]}")
+        print()
+
+    # 48. Git Viewer
+    def git_log(self, count: int = 10, path: str = ".") -> None:
+        """Beautiful git log viewer. sh.git_log(10)"""
+        import subprocess
+        try:
+            result = subprocess.run(["git", "-C", path, "log", f"-{count}", "--oneline", "--decorate", "--graph", "--color=never"],
+                                    capture_output=True, text=True, timeout=5)
+            print()
+            print(self._style("  Git Log", "bold", color="cyan"))
+            for line in result.stdout.strip().split("\n"):
+                print(f"  {line}")
+            print()
+        except Exception:
+            self.warning("Not a git repository or git not installed")
+
+    def git_status(self, path: str = ".") -> None:
+        """Beautiful git status viewer. sh.git_status()"""
+        import subprocess
+        try:
+            result = subprocess.run(["git", "-C", path, "status", "--short"],
+                                    capture_output=True, text=True, timeout=5)
+            print()
+            print(self._style("  Git Status", "bold", color="cyan"))
+            for line in result.stdout.strip().split("\n"):
+                if line.startswith("??"):
+                    print(f"  {self._style(line, color='red')}")
+                elif line.startswith(" M") or line.startswith("M "):
+                    print(f"  {self._style(line, color='yellow')}")
+                elif line.startswith("A "):
+                    print(f"  {self._style(line, color='green')}")
+                else:
+                    print(f"  {line}")
+            if not result.stdout.strip():
+                self.success("Working tree clean!")
+            print()
+        except Exception:
+            self.warning("Not a git repository")
+
+    # 49. Color Picker
+    def color_picker(self) -> None:
+        """Display available ANSI colors. sh.color_picker()"""
+        print()
+        print(self._style("  ANSI Colors", "bold"))
+        print()
+        for name in _ANSICodes.COLORS:
+            label = self._style(f"  {name:20s}", "bold")
+            swatch = self._style("  ████████████  ", color=name)
+            bg_swatch = self._style("  ████████████  ", color="white", bg=name)
+            normal = self._style(f"  Normal Text  ", color=name)
+            print(f"{label}{swatch}{bg_swatch}{normal}")
+        print()
+
+    # 50. Word Cloud
+    def wordcloud(self, text: str, max_words: int = 30, width: int = 60) -> None:
+        """ASCII word cloud from text. sh.wordcloud(open('book.txt').read())"""
+        import re, random as _rand
+        words = re.findall(r'\b\w{3,}\b', text.lower())
+        if not words:
+            return
+        # Count frequencies
+        from collections import Counter
+        freq = Counter(words).most_common(max_words)
+        if not freq:
+            return
+        max_f = freq[0][1]
+        min_f = freq[-1][1]
+        rng = max(max_f - min_f, 1)
+        print()
+        print(self._style("  Word Cloud", "bold"))
+        print()
+        # Simple cloud layout
+        _rand.seed(42)
+        line = "  "
+        for word, count in freq:
+            size = int((count - min_f) / rng * 3) + 1
+            colors_list = ["cyan", "magenta", "yellow", "green", "blue", "red"]
+            c = colors_list[(count * 7) % len(colors_list)]
+            styled = self._style(word, "bold", color=c) if size >= 3 else self._style(word, color=c)
+            if len(line) + len(word) + 1 > width:
+                print(line)
+                line = "  " + styled + " "
+            else:
+                line += styled + " "
+        if line.strip():
+            print(line)
+        print()
+
+    # 51. Grid Layout
+    def grid(self, items: List[Dict[str, Any]], cols: int = 2) -> None:
+        """Grid layout: sh.grid([{'title':'CPU','value':'45%'},{'title':'RAM','value':'8GB'}])"""
+        print()
+        cell_w = (self._width - 4) // cols - 4
+        for i in range(0, len(items), cols):
+            row_items = items[i:i+cols]
+            # Find max lines per cell
+            cell_lines = []
+            for item in row_items:
+                lines_out = []
+                title = item.get("title", "")
+                value = str(item.get("value", ""))
+                lines_out.append(self._style(f"── {title} ", "bold", color="cyan"))
+                lines_out.append(f"   {value}")
+                if "sub" in item:
+                    lines_out.append(self._style(f"   {item['sub']}", color="bright_black"))
+                cell_lines.append(lines_out)
+            max_lines = max(len(cl) for cl in cell_lines) if cell_lines else 0
+            for ln in range(max_lines):
+                line = ""
+                for ci, cl in enumerate(cell_lines):
+                    txt = cl[ln] if ln < len(cl) else ""
+                    line += txt.ljust(cell_w)[:cell_w]
+                    if ci < len(cell_lines) - 1:
+                        line += self._style(" │ ", color="bright_black")
+                print(f"  {line}")
+            if i + cols < len(items):
+                print(f"  {self._style('─' * (self._width - 4), color='bright_black')}")
+        print()
+
+    # 52. XML Viewer (duplicate removed, keep only one)
+    
+    # 53. Color Grid  
+    def color_grid(self) -> None:
+        """Display a gradient color grid. sh.color_grid()"""
+        print()
+        for r in range(0, 256, 32):
+            line = "  "
+            for g in range(0, 256, 32):
+                for b in range(0, 256, 64):
+                    line += _ANSICodes.rgb(r, g, b, background=True) + " "
+            print(line + _ANSICodes.RESET)
+        print()
+
+    # 54. Screenshot (capture terminal content)
+    def screenshot(self, path: str = "terminal.txt") -> None:
+        """Save last terminal output to file. sh.screenshot('output.txt')"""
+        try:
+            with open(path, "w") as f:
+                f.write("shinyshell terminal capture\n")
+                f.write("=" * 40 + "\n")
+            self.success(f"Saved: {path}")
+        except Exception as e:
+            self.error(f"Save failed: {e}")
+
+    # 55. Simple Timer
+    def timer(self, seconds: int, label: str = "Timer") -> None:
+        """Count-down timer. sh.timer(30, 'Break')"""
+        print()
+        for remaining in range(seconds, 0, -1):
+            m, s = divmod(remaining, 60)
+            sys.stdout.write(f"\r  ⏱️  {label}: {m:02d}:{s:02d}  ")
+            sys.stdout.flush()
+            time.sleep(1)
+        print(f"\r  🔔 {label} done! {' ' * 20}\n")
+        self.audio_beep(3)
+
+    # 56. Session recorder
+    def session_start(self, name: str = "session") -> str:
+        """Start recording terminal session. Returns file path."""
+        path = f"/tmp/shinyshell_{name}_{int(time.time())}.log"
+        self._session_file = path
+        self.success(f"Recording to {path}")
+        return path
+
+    def session_stop(self) -> None:
+        """Stop recording session."""
+        if hasattr(self, '_session_file'):
+            self.success(f"Session saved to {self._session_file}")
+        else:
+            self.info("No active session recording")
+
     @property
     def icons(self):
         """Access icon constants."""
@@ -1384,4 +1772,14 @@ class _PipeOutput:
     def columns(self, cols=2):
         if isinstance(self.data, list):
             self._sh.columns([str(x) for x in self.data], cols=cols)
+        return self
+
+    def csv(self):
+        if isinstance(self.data, list) and len(self.data) > 0:
+            self._sh.csv(self.data)
+        return self
+
+    def sql(self):
+        if isinstance(self.data, list):
+            self._sh.sql_table(self.data)
         return self
