@@ -6,7 +6,7 @@ with open("README.md", "r") as f:
 
 setup(
     name="shinyshell",
-    version="0.2.2",
+    version="0.3.0",
     author="Adnan Ahamed Himal",
     author_email="hello@adnanahamedhimal.com",
     description="Python library for beautiful terminal output — colored printing, tables, progress bars, syntax highlighting, bar charts, QR codes, and more. Zero dependencies.",
@@ -16,6 +16,7 @@ setup(
     project_urls={
         "Source": "https://github.com/adnanahamed66772ndpc/shinyshell",
         "Bug Reports": "https://github.com/adnanahamed66772ndpc/shinyshell/issues",
+        "Discussions": "https://github.com/adnanahamed66772ndpc/shinyshell/discussions",
         "Documentation": "https://github.com/adnanahamed66772ndpc/shinyshell#readme",
     },
     packages=find_packages(),

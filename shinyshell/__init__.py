@@ -12,7 +12,7 @@ One import. All the pretty you need.
 Pure Python stdlib. Works on Linux, macOS, Windows.
 """
 
-__version__ = "0.2.2"
+__version__ = "0.3.0"
 __all__ = ["Shell"]
 
 import os
@@ -946,7 +946,442 @@ class Shell:
             sys.stdout.write(f"\r  {self._style(_ICONS['check'], color='green')} {lines[0]} {' ' * 20}\n")
             sys.stdout.flush()
 
+    # ── v0.3.0 NEW Features ──────────────────────────────────────
+
+    # 21. Sparklines
+    def sparkline(self, values: List[Union[int, float]], title: Optional[str] = None,
+                  width: int = 40) -> None:
+        """Tufte-style inline sparkline chart. sh.sparkline([1,5,2,8,3,9,4]) → ▁▃▁▆▂█▃"""
+        if not values:
+            return
+        chars = " ▁▂▃▄▅▆▇█"
+        mn, mx = min(values), max(values)
+        rng = max(mx - mn, 1)
+        scaled = [int((v - mn) / rng * (len(chars) - 1)) for v in values]
+        if len(scaled) > width:
+            step = len(scaled) / width
+            scaled = [scaled[int(i * step)] for i in range(width)]
+        spark = "".join(chars[min(i, len(chars) - 1)] for i in scaled)
+        print()
+        if title:
+            print(f"  {self._style(title, 'bold')}")
+        print(f"  {self._style(spark, color='cyan')} {self._style(f'{mn}—{mx}', color='bright_black')}")
+        print()
+
+    # 22. Styled Input
+    def input(self, prompt: str = "", default: str = "", validate: Optional[Callable[[str], bool]] = None) -> str:
+        """Styled text input with optional validation. sh.input('Name:', default='World')"""
+        p = f"  {self._style(_ICONS['question'], color='cyan')} {prompt} "
+        if default:
+            p += self._style(f"[{default}]", color="bright_black") + " "
+        try:
+            val = input(p).strip()
+        except (KeyboardInterrupt, EOFError):
+            print()
+            return default
+        if not val:
+            return default
+        if validate and not validate(val):
+            self.warning(f"Invalid input: {val}")
+            return self.input(prompt, default, validate)
+        return val
+
+    # 23. Password Input
+    def password(self, prompt: str = "Password:", min_len: int = 4) -> str:
+        """Masked password input with strength meter. sh.password('Enter API key:')"""
+        import getpass
+        print()
+        try:
+            pwd = getpass.getpass(f"  {self._style(_ICONS['lock'], color='yellow')} {prompt} ")
+        except (KeyboardInterrupt, EOFError):
+            print()
+            return ""
+        if not pwd:
+            return ""
+
+        # Strength meter
+        score = min(4, sum([
+            len(pwd) >= 8,
+            len(pwd) >= 12,
+            any(c.isupper() for c in pwd),
+            any(c.islower() for c in pwd),
+            any(c.isdigit() for c in pwd),
+            any(not c.isalnum() for c in pwd),
+        ]))
+        bar = ["▯" * 10, "▮▯▯▯▯▯▯▯▯▯", "▮▮▮▯▯▯▯▯▯▯", "▮▮▮▮▮▯▯▯▯▯", "▮▮▮▮▮▮▮▯▯▯", "▮▮▮▮▮▮▮▮▮▮"][min(score, 5)]
+        labels = ["", "Weak", "Fair", "Good", "Strong", "Very Strong"]
+        colors = ["", "red", "yellow", "cyan", "green", "green"]
+        print(f"  {self._style(bar, color=colors[min(score,5)])} {self._style(labels[min(score,5)], color=colors[min(score,5)])}")
+        return pwd
+
+    # 24. Themes
+    def theme(self, name: str = "default") -> None:
+        """Apply a color theme: dracula, nord, solarized, monokai, default. sh.theme('dracula')"""
+        themes = {
+            "dracula": {"success": "green", "error": "red", "warning": "yellow", "info": "magenta", "header": "magenta", "accent": "magenta"},
+            "nord": {"success": "green", "error": "red", "warning": "yellow", "info": "cyan", "header": "cyan", "accent": "cyan"},
+            "solarized": {"success": "green", "error": "red", "warning": "yellow", "info": "cyan", "header": "yellow", "accent": "yellow"},
+            "monokai": {"success": "green", "error": "red", "warning": "yellow", "info": "magenta", "header": "magenta", "accent": "magenta"},
+            "ocean": {"success": "green", "error": "red", "warning": "yellow", "info": "blue", "header": "blue", "accent": "blue"},
+        }
+        self._theme = themes.get(name, themes.get("default", {}))
+        if name != "default":
+            self.success(f"Theme '{name}' applied!")
+
+    # 25. Log Viewer
+    def log(self, level: str, message: str, timestamp: bool = True) -> None:
+        """Pretty log line. sh.log('INFO', 'Server started', timestamp=True)"""
+        import datetime
+        colors = {"DEBUG": "bright_black", "INFO": "cyan", "WARN": "yellow", "ERROR": "red", "CRITICAL": "magenta"}
+        color = colors.get(level.upper(), "white")
+        ts = ""
+        if timestamp:
+            ts = self._style(datetime.datetime.now().strftime("%H:%M:%S"), color="bright_black") + " "
+        lvl = self._style(f"{level.upper():8s}", "bold", color=color)
+        print(f"  {ts}{lvl} {message}")
+
+    # 26. Calendar
+    def calendar(self, year: Optional[int] = None, month: Optional[int] = None) -> None:
+        """Display a monthly calendar. sh.calendar(2026, 7)"""
+        import calendar as cal_mod, datetime
+        now = datetime.datetime.now()
+        y = year or now.year
+        m = month or now.month
+        cal = cal_mod.TextCalendar()
+        print()
+        header = self._style(f"    {cal_mod.month_name[m]} {y}", "bold", color="cyan")
+        print(header)
+        print(self._style("    Mo Tu We Th Fr Sa Su", color="bright_black"))
+        for week in cal.monthdayscalendar(y, m):
+            line = "   "
+            for d in week:
+                if d == 0:
+                    line += "   "
+                elif d == now.day and m == now.month and y == now.year:
+                    line += self._style(f"{d:2d} ", "bold", color="green", bg="green")
+                else:
+                    line += f"{d:2d} "
+            print(f"  {line}")
+        print()
+
+    # 27. Network Utilities
+    def network_ping(self, host: str, count: int = 4) -> None:
+        """Simple ping with visual output. sh.network_ping('google.com')"""
+        import subprocess, platform
+        print()
+        self.info(f"Pinging {host}...")
+        cmd = ["ping", "-n" if platform.system() == "Windows" else "-c", str(count), host]
+        try:
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+            for line in result.stdout.split("\n"):
+                if "time=" in line or "time<" in line or "ms" in line:
+                    print(f"  {self._style('⚡', color='cyan')} {line.strip()}")
+            if result.returncode == 0:
+                self.success(f"{host} is reachable")
+            else:
+                self.error(f"{host} unreachable")
+        except Exception as e:
+            self.error(f"Ping failed: {e}")
+
+    def network_status(self, url: str) -> None:
+        """Check HTTP status with visual output. sh.network_status('https://api.example.com')"""
+        import urllib.request
+        print()
+        try:
+            req = urllib.request.Request(url, method="HEAD")
+            resp = urllib.request.urlopen(req, timeout=5)
+            status = resp.status
+            if status < 300:
+                self.success(f"{url} → {status} OK ({resp.headers.get('Server', '?')})")
+            elif status < 400:
+                self.warning(f"{url} → {status} Redirect")
+            else:
+                self.error(f"{url} → {status} Error")
+        except Exception as e:
+            self.error(f"{url} → {str(e)[:60]}")
+
+    # 28. Gauge
+    def gauge(self, value: float, max_val: float = 100, title: Optional[str] = None,
+              width: int = 30, color: str = "green") -> None:
+        """Circular-style gauge display. sh.gauge(75, 100, 'CPU Usage')"""
+        pct = min(value / max(max_val, 1), 1.0)
+        filled = int(pct * width)
+        bar = "█" * filled + "░" * (width - filled)
+        if pct > 0.9:
+            color = "red"
+        elif pct > 0.7:
+            color = "yellow"
+        print()
+        if title:
+            print(f"  {self._style(title, 'bold')}")
+        print(f"  {self._style(bar, color=color)} {self._style(f'{pct*100:.0f}%', 'bold', color=color)}")
+        print()
+
+    # 29. Clipboard
+    def clipboard_copy(self, text: str) -> None:
+        """Copy text to system clipboard. sh.clipboard_copy('Hello')"""
+        import subprocess, platform
+        sys_name = platform.system()
+        try:
+            if sys_name == "Darwin":
+                subprocess.run(["pbcopy"], input=text.encode(), timeout=2)
+            elif sys_name == "Linux":
+                subprocess.run(["xclip", "-selection", "clipboard"], input=text.encode(), timeout=2)
+            elif sys_name == "Windows":
+                subprocess.run(["clip"], input=text.encode(), timeout=2)
+            self.success("Copied to clipboard!")
+        except Exception:
+            # Fallback: use OSC 52 (works in many terminals)
+            encoded = __import__('base64').b64encode(text.encode()).decode()
+            sys.stdout.write(f"\033]52;c;{encoded}\007")
+            sys.stdout.flush()
+            self.info("Copied (OSC 52)")
+
+    # 30. Config Viewer
+    def config(self, path: str) -> None:
+        """View config files (TOML, YAML, INI, JSON) with syntax colors. sh.config('.env')"""
+        import configparser
+        print()
+        print(self._style(f"  📄 {path}", "bold"))
+        try:
+            with open(path) as f:
+                content = f.read()
+            if path.endswith(('.json',)):
+                self.json(_json.loads(content))
+            elif path.endswith(('.ini', '.cfg', '.conf')):
+                cp = configparser.ConfigParser()
+                cp.read_string(content)
+                for section in cp.sections():
+                    print(self._style(f"  [{section}]", "bold", color="cyan"))
+                    for k, v in cp.items(section):
+                        print(f"    {self._style(k, color='green')} = {v}")
+            else:
+                for line in content.strip().split("\n"):
+                    if line.startswith("#") or line.startswith(";"):
+                        print(f"  {self._style(line, color='bright_black')}")
+                    elif "=" in line:
+                        k, v = line.split("=", 1)
+                        print(f"  {self._style(k.strip(), color='green')} = {self._style(v.strip(), color='yellow')}")
+                    else:
+                        print(f"  {line}")
+        except Exception as e:
+            self.error(f"Cannot read: {e}")
+        print()
+
+    # 31. Pipe
+    def pipe(self, data: Any):
+        """Chained output: sh.pipe(data).table().metrics()"""
+        return _PipeOutput(data, self)
+
+    # 32. Heatmap
+    def heatmap(self, data: List[List[float]], title: Optional[str] = None) -> None:
+        """Display 2D data as a heatmap. sh.heatmap([[1,2,3],[4,5,6],[7,8,9]])"""
+        if not data:
+            return
+        print()
+        if title:
+            print(self._style(f"  {title}", "bold"))
+        chars = " ·░▒▓█"
+        flat = [v for row in data for v in row]
+        mn, mx = min(flat), max(flat)
+        rng = max(mx - mn, 1)
+        for row in data:
+            line = "  "
+            for v in row:
+                idx = int((v - mn) / rng * (len(chars) - 1))
+                line += chars[min(idx, len(chars) - 1)] * 2
+            print(line)
+        print()
+
+    # 33. Notification
+    def notify(self, title: str, message: str = "") -> None:
+        """Cross-platform desktop notification. sh.notify('Build complete', 'All tests passed')"""
+        import subprocess, platform
+        sys_name = platform.system()
+        try:
+            if sys_name == "Darwin":
+                subprocess.run(["osascript", "-e", f'display notification "{message}" with title "{title}"'], timeout=3)
+            elif sys_name == "Linux":
+                subprocess.run(["notify-send", title, message], timeout=3)
+            elif sys_name == "Windows":
+                from win10toast import ToastNotifier
+                ToastNotifier().show_toast(title, message, duration=3)
+            self.success(f"Notification sent: {title}")
+        except Exception:
+            print(f"\n  🔔 {title}: {message}\n")
+
+    # 34. File Watcher
+    def filewatch(self, path: str, callback: Optional[Callable[[str], None]] = None) -> None:
+        """Watch a file/directory for changes. sh.filewatch('app.py', callback=my_handler)"""
+        import time as _time
+        import hashlib
+        print()
+        self.info(f"Watching {path}... (Ctrl+C to stop)")
+        try:
+            if os.path.isfile(path):
+                last_hash = hashlib.md5(open(path, "rb").read()).hexdigest()
+                while True:
+                    _time.sleep(1)
+                    try:
+                        new_hash = hashlib.md5(open(path, "rb").read()).hexdigest()
+                        if new_hash != last_hash:
+                            last_hash = new_hash
+                            self.success(f"Changed: {path}")
+                            if callback:
+                                callback(path)
+                    except FileNotFoundError:
+                        self.warning(f"File deleted: {path}")
+                        break
+            elif os.path.isdir(path):
+                last_files = set(os.listdir(path))
+                while True:
+                    _time.sleep(1)
+                    try:
+                        files = set(os.listdir(path))
+                        added = files - last_files
+                        removed = last_files - files
+                        if added:
+                            self.success(f"Added: {', '.join(added)}")
+                        if removed:
+                            self.error(f"Removed: {', '.join(removed)}")
+                        if added or removed:
+                            if callback:
+                                callback(path)
+                        last_files = files
+                    except Exception:
+                        pass
+        except KeyboardInterrupt:
+            self.info("Stopped watching.")
+
+    # 35. Menu (arrow-key navigable)
+    def menu(self, options: List[str], title: Optional[str] = None) -> Optional[int]:
+        """Arrow-key navigable menu. Returns selected index or None.
+
+        index = sh.menu(['Deploy', 'Rollback', 'Status', 'Exit'])
+        """
+        if not options:
+            return None
+        selected = 0
+        print()
+        if title:
+            print(self._style(f"  {title}", "bold"))
+            print()
+
+        # Use raw terminal input for arrow keys
+        import tty, termios, select as _select
+
+        def _get_key():
+            fd = sys.stdin.fileno()
+            old = termios.tcgetattr(fd)
+            try:
+                tty.setraw(fd)
+                if _select.select([sys.stdin], [], [], 0.1)[0]:
+                    ch = sys.stdin.read(1)
+                    if ch == '\x1b':
+                        ch2 = sys.stdin.read(2)
+                        if ch2 == '[A':
+                            return 'up'
+                        elif ch2 == '[B':
+                            return 'down'
+                        elif ch2 == '[C':
+                            return 'right'
+                        elif ch2 == '[D':
+                            return 'left'
+                    elif ch in ('\r', '\n'):
+                        return 'enter'
+                    elif ch == '\x03':
+                        return 'ctrl_c'
+                    elif ch == 'q':
+                        return 'quit'
+                return None
+            finally:
+                termios.tcsetattr(fd, termios.TCSADRAIN, old)
+
+        def _render():
+            sys.stdout.write('\033[F' * (len(options) + 3))
+            sys.stdout.write('\033[J')
+            print()
+            if title:
+                print(self._style(f"  {title}", "bold"))
+                print()
+            for i, opt in enumerate(options):
+                if i == selected:
+                    print(f"  {self._style('▸', color='cyan')} {self._style(opt, 'bold', color='cyan', bg='cyan')}")
+                else:
+                    print(f"    {opt}")
+            print(f"  {self._style('↑↓ navigate  ↵ select  q quit', color='bright_black')}")
+            sys.stdout.flush()
+
+        self.info("Arrow keys: navigate, Enter: select, q: quit")
+        try:
+            _render()
+            while True:
+                key = _get_key()
+                if key == 'up':
+                    selected = (selected - 1) % len(options)
+                    _render()
+                elif key == 'down':
+                    selected = (selected + 1) % len(options)
+                    _render()
+                elif key == 'enter':
+                    sys.stdout.write('\033[F' * (len(options) + 3))
+                    sys.stdout.write('\033[J')
+                    self.success(f"Selected: {options[selected]}")
+                    return selected
+                elif key in ('quit', 'ctrl_c'):
+                    sys.stdout.write('\033[F' * (len(options) + 3))
+                    sys.stdout.write('\033[J')
+                    self.info("Cancelled")
+                    return None
+        except Exception:
+            return None
+
+    # 36. Simple Venn Diagram
+    def venn(self, set_a: set, set_b: set, labels: tuple = ("A", "B"),
+             title: Optional[str] = None) -> None:
+        """ASCII Venn diagram for 2 sets. sh.venn({1,2,3}, {2,3,4}, ('Users', 'Admins'))"""
+        a_only = set_a - set_b
+        b_only = set_b - set_a
+        both = set_a & set_b
+        print()
+        if title:
+            print(self._style(f"  {title}", "bold"))
+            print()
+        print(f"  {self._style(labels[0], 'bold', color='cyan')}: {len(set_a)}  |  {self._style(labels[1], 'bold', color='magenta')}: {len(set_b)}")
+        print(f"  {self._style('Only ' + labels[0], color='bright_black')}: {len(a_only)}  |  {self._style('Only ' + labels[1], color='bright_black')}: {len(b_only)}  |  {self._style('Both', color='bright_black')}: {len(both)}")
+        print()
+
     @property
     def icons(self):
         """Access icon constants."""
         return _ICONS
+
+
+class _PipeOutput:
+    """Enables chained output: sh.pipe(data).table()"""
+    def __init__(self, data, shell):
+        self.data = data
+        self._sh = shell
+
+    def table(self, title=None, style="single"):
+        self._sh.table(self.data, title=title, style=style)
+        return self
+
+    def json(self, title=None):
+        self._sh.json(self.data, title=title)
+        return self
+
+    def metrics(self):
+        if isinstance(self.data, dict):
+            self._sh.metrics(self.data)
+        return self
+
+    def bar(self, title=None):
+        if isinstance(self.data, dict):
+            self._sh.bar(self.data, title=title)
+        return self
+
+    def columns(self, cols=2):
+        if isinstance(self.data, list):
+            self._sh.columns([str(x) for x in self.data], cols=cols)
+        return self
