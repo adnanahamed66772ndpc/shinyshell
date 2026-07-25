@@ -1,501 +1,306 @@
-# ✨ shinyshell — Beautiful Terminal Output Library for Python
+# ✨ shinyshell — The Most Feature-Rich Zero-Dependency Python Terminal Library
 
 <p align="center">
-  <b>Python library for beautiful CLI output, colored terminal printing, progress bars,<br>
-  tables, syntax highlighting, ASCII art, and interactive prompts — all with zero dependencies.</b><br>
-  <i>One import. 38 features. Pure Python stdlib. No pip install headaches.</i>
+  <b>127 features. 0 dependencies. Pure Python stdlib.</b><br>
+  <i>Tables, charts, progress bars, games, QR codes, code highlighting, diff viewer,<br>
+  HTTP client, JSON/YAML/XML formatters, and much more — all in one import.</i>
 </p>
 
 <p align="center">
-  <a href="https://pypi.org/project/shinyshell/"><img src="https://img.shields.io/pypi/v/shinyshell?color=green&label=PyPI" alt="PyPI"></a>
-  <a href="https://pypi.org/project/shinyshell/"><img src="https://img.shields.io/pypi/pyversions/shinyshell" alt="Python Versions"></a>
-  <a href="https://github.com/adnanahamed66772ndpc/shinyshell/blob/main/LICENSE"><img src="https://img.shields.io/github/license/adnanahamed66772ndpc/shinyshell" alt="MIT License"></a>
-  <a href="https://pypi.org/project/shinyshell/"><img src="https://img.shields.io/pypi/dm/shinyshell" alt="Downloads"></a>
-  <a href="https://github.com/adnanahamed66772ndpc/shinyshell"><img src="https://img.shields.io/github/stars/adnanahamed66772ndpc/shinyshell?style=social" alt="GitHub Stars"></a>
+  <a href="https://pypi.org/project/shinyshell/"><img src="https://img.shields.io/pypi/v/shinyshell?color=green" alt="PyPI"></a>
+  <a href="https://pypi.org/project/shinyshell/"><img src="https://img.shields.io/pypi/pyversions/shinyshell" alt="Python"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/adnanahamed66772ndpc/shinyshell" alt="MIT"></a>
+  <a href="https://pypi.org/project/shinyshell/"><img src="https://img.shields.io/pypi/dm/shinyshell"></a>
+  <a href="https://github.com/adnanahamed66772ndpc/shinyshell"><img src="https://img.shields.io/github/stars/adnanahamed66772ndpc/shinyshell?style=social"></a>
 </p>
 
 ---
 
 ## 📦 Why shinyshell?
 
-- **Zero dependencies** — uses only Python standard library (`os`, `sys`, `shutil`)
-- **38 built-in features** — tables, progress bars, code highlighting, diff viewer, JSON formatter, bar charts, QR codes, ASCII art, and more
-- **Cross-platform** — Linux, macOS, Windows Terminal, PowerShell, CMD, VS Code, PyCharm
-- **Beginner-friendly** — one import, intuitive API, no configuration needed
-- **Production-ready** — works in scripts, CLIs, CI/CD pipelines, Docker containers
-- **Lightweight** — ~950 lines of code, installs in seconds
-
-### Use Cases
-
-| Use Case | Features You'll Use |
-|----------|-------------------|
-| **CLI tool developer** | progress bars, spinners, headers, tables, confirm dialogs |
-| **Data scientist** | tables, bar charts, metrics dashboard, JSON viewer |
-| **DevOps engineer** | colored messages, benchmarks, env viewer, code blocks |
-| **Backend developer** | debug(), trace(), diff viewer, secret masking |
-| **Student/learner** | markdown renderer, ASCII art, QR codes, emoji helper |
+- **127 features** — the most feature-rich zero-dep terminal library for Python
+- **Zero dependencies** — pure Python stdlib (`os`, `sys`, `shutil`, `json`, `csv`, `hashlib`)
+- **Cross-platform** — Linux, macOS, Windows Terminal, PowerShell, CMD, VS Code
+- **Production-ready** — scripts, CLIs, CI/CD pipelines, Docker containers
+- **~2800 lines** — small, readable, easy to contribute to
 
 ### vs Alternatives
 
 | | shinyshell | rich | colorama | termcolor |
 |---|-----------|------|----------|-----------|
 | Dependencies | **0** | 10+ | 0 | 0 |
-| Features | **38** | 50+ | 3 | 5 |
-| Install size | **~25KB** | ~50MB | ~20KB | ~15KB |
+| Features | **127** | 50+ | 3 | 5 |
 | Tables | ✅ | ✅ | ❌ | ❌ |
-| Progress bars | ✅ | ✅ | ❌ | ❌ |
+| Charts | ✅ | ✅ | ❌ | ❌ |
 | Code highlight | ✅ | ✅ | ❌ | ❌ |
-| Bar charts | ✅ | ❌ | ❌ | ❌ |
-| Timeline | ✅ | ❌ | ❌ | ❌ |
 | QR codes | ✅ | ❌ | ❌ | ❌ |
-| Debug/trace | ✅ | ❌ | ❌ | ❌ |
-| Interactive | ✅ | ✅ | ❌ | ❌ |
+| Games | ✅ | ❌ | ❌ | ❌ |
+| Animations | ✅ | ✅ | ❌ | ❌ |
+| Git viewer | ✅ | ✅ | ❌ | ❌ |
+| HTTP client | ✅ | ❌ | ❌ | ❌ |
+| Decorators | ✅ | ❌ | ❌ | ❌ |
+| Forms | ✅ | ✅ | ❌ | ❌ |
 
-> **shinyshell** is the sweet spot: ***rich's feature set with colorama's simplicity***.
-
----
-
-## 📦 Install
-
-```bash
-pip install shinyshell
-```
-
-That's it. No dependencies. Works everywhere: **Linux, macOS, Windows (PowerShell/CMD/Terminal)**.
+> **shinyshell** = Rich's features + Colorama's portability + 77 extra features — all with zero deps.
 
 ---
 
 ## 🚀 Quick Start
 
+```bash
+pip install shinyshell
+```
+
 ```python
 from shinyshell import Shell
-
 sh = Shell()
-
-# Basic messages
-sh.success("Database migrated!")
-sh.error("Connection failed")
-sh.warning("Disk usage at 92%")
-sh.info("Server running on port 8000")
-```
-
-**Output:**
-```
- ✨ Database migrated!
- 💥 Connection failed
- ⚠️ Disk usage at 92%
- ℹ️ Server running on port 8000
 ```
 
 ---
 
-## 📚 Complete Feature Reference
+## 📚 Complete Feature Reference (127 features)
 
-### 1. Headers & Banners
-
+### 💬 Messages & Status
 ```python
-# Level 1 header (boxed)
-sh.header("DEPLOYMENT REPORT")
-
-# Level 2 header (simple)
-sh.header("Configuration", level=2)
-
-# ASCII banner
-sh.banner("SHINY")
-sh.banner("HELLO", color="magenta")
+sh.success("Done!")       # ✨ Green success
+sh.error("Failed!")       # 💥 Red error
+sh.warning("Careful!")    # ⚠️ Yellow warning
+sh.info("Running...")     # ℹ️ Cyan info
 ```
 
-### 2. Status Messages
-
+### 📐 Layout & Headers
 ```python
-sh.success("Build completed!")     # Green, checkmark
-sh.error("API returned 500")       # Red, cross
-sh.warning("Memory at 85%")        # Yellow, triangle
-sh.info("Listening on :8000")      # Cyan, info circle
+sh.header("MY APP")       # ╔═ Boxed header
+sh.header("Section", 2)   # ── Simple header
+sh.banner("SHINY")        # ASCII art banner
+sh.hr()                   # ─── Horizontal rule
+sh.hr("Section 1")        # Labeled rule
+sh.rule()                 # Gradient rule
+sh.box("content", "Title") # ╭─ Boxed content
 ```
 
-### 3. Horizontal Rules
-
+### 📊 Tables & Data
 ```python
-# Simple divider
-sh.hr()
-
-# Labeled divider
-sh.hr("Section 2")
+sh.table(users, title="Team")          # Professional tables
+sh.metrics({"CPU":"45%","RAM":"8GB"})  # Key-value dashboard
+sh.timeline(events)                     # Vertical timeline
+sh.columns(items, cols=3)              # Side-by-side columns
+sh.grid(items, cols=2)                 # Grid layout
 ```
 
-### 4. Tables
-
+### 📈 Charts & Visualizations
 ```python
-users = [
-    {"Name": "Alice Chen", "Role": "Backend", "Status": "Active"},
-    {"Name": "Bob Kumar", "Role": "Frontend", "Status": "On Leave"},
-    {"Name": "Carol Diaz", "Role": "DevOps", "Status": "Active"},
-]
-
-sh.table(users, title="Team Members")
-
-# Border styles: single, double, round, bold, dashed
-sh.table(data, style="round")
+sh.pie({"Python":45,"JS":30,"Go":25})          # ASCII pie chart
+sh.bar({"A":85,"B":62,"C":45})                 # Bar chart
+sh.line_chart([1,5,2,8,3,9])                   # Line chart
+sh.histogram([1,2,2,3,3,3,4,5])               # Histogram
+sh.scatter([(1,2),(3,5),(4,3)])                # Scatter plot
+sh.waterfall([("Start",100),("+Sales",50)])    # Waterfall chart
+sh.donut({"A":30,"B":70})                       # Donut chart
+sh.bullet_graph("Revenue", 75, 90)              # Bullet graph
+sh.heatmap([[1,2,3],[4,5,6],[7,8,9]])          # Heatmap
+sh.sparkline([1,5,2,8,3,9])                    # ▁▃▁▆▂█
+sh.gauge(75, 100, "CPU")                       # Gauge meter
 ```
 
-### 5. Metrics Dashboard
-
+### 🔄 Progress & Loading
 ```python
-sh.metrics({
-    "Users": 12483,
-    "Active Now": 342,
-    "Uptime": "✅ 99.9%",
-    "Error Rate": "0.02%",
-    "Avg Response": "23ms",
-})
+sh.spinner("Loading...", 3.0)         # Animated spinner
+sh.progress("Uploading")              # Progress bar
+sh.countdown(5, "Launching")          # 5...4...3...
+sh.benchmark("Processing")            # ⏱️ Timed context
+sh.live()                             # Live-updating display
+sh.steps("Deploy", total=5)           # Step tracker
+sh.timer(30, "Break")                 # Countdown timer
+sh.pomodoro(25, 5, 4)                # 🍅 Pomodoro timer
 ```
 
-### 6. Boxed Content
-
+### 💻 Code & Development
 ```python
-sh.box(
-    "API Key: sk-****abcd\nEndpoint: /v1/chat\nModel: deepseek-v4",
-    title="Configuration"
-)
+sh.code(python_source)                # Syntax highlighting
+sh.diff(old, new)                     # Colored git diff
+sh.git_log(10)                        # Pretty git log
+sh.git_status()                       # Pretty git status
+sh.stack_trace()                      # Pretty stack trace
+sh.process_info()                     # Process metrics
+sh.pip_list("django")                 # Pretty pip list
+sh.filewatch("app.py")               # File change watcher
 ```
 
-### 7. Code Blocks
-
+### 🌐 Network & Web
 ```python
-sh.code("""
-def fibonacci(n):
-    # Base case
-    if n <= 1:
-        return n
-    return fibonacci(n-1) + fibonacci(n-2)
-""")
-
-# Supports Python keywords, strings, numbers, comments
+sh.http("GET", "https://api.example.com")  # HTTP viewer
+sh.network_ping("google.com")              # Ping with visuals
+sh.network_status("https://example.com")   # HTTP status check
+sh.dns_lookup("google.com")               # DNS lookup
+sh.ip_info("8.8.8.8")                     # IP geolocation
 ```
 
-### 8. Colored Diff
-
+### 📁 Files & System
 ```python
-old_code = "def greet(name):\n    return 'Hello'"
-new_code = "def greet(name, title=''):\n    return f'Hello {title} {name}'"
-
-sh.diff(old_code, new_code, old_label="v1.py", new_label="v2.py")
+sh.tree("./src")                      # Directory tree
+sh.disk_usage("/")                    # Disk usage gauge
+sh.file_permissions("app.py")        # Permission viewer
+sh.checksum("file.bin", "sha256")    # File hash
+sh.config(".env")                     # Config file viewer
+sh.csv("data.csv")                    # CSV viewer
+sh.sql_table(rows)                    # SQL result viewer
+sh.env("PYTHON")                      # Environment viewer
+sh.version()                          # System version info
 ```
 
-### 9. Directory Tree
-
+### 📄 Data Formats
 ```python
-sh.tree("./myproject")
-sh.tree("./src", max_depth=2)
-sh.tree(".", exclude=["node_modules", ".git", "__pycache__"])
+sh.json(data)                         # Colored JSON
+sh.markdown(text)                     # Terminal markdown
+sh.xml("<root><item/></root>")       # Colored XML
+sh.yaml_view(yaml_text)              # YAML viewer
+sh.hexdump(b"hello world")           # Hex dump
+sh.jwt_decode(token)                  # JWT decoder
+sh.url_parse(url)                     # URL parser
+sh.base64_encode("hello")            # Base64 encode
+sh.uuid_gen(5)                        # UUID generator
 ```
 
-### 10. JSON Pretty Print
-
+### 🔐 Security & Debug
 ```python
-sh.json({
-    "user": {"name": "Alice", "age": 30, "active": True},
-    "stats": {"posts": 142, "followers": 1200},
-})
-# Syntax-colored output: green keys, yellow strings, cyan numbers, magenta booleans
+sh.secret("sk-abc123")               # sk-****123
+sh.password("Enter key:")            # Masked input + strength
+sh.debug(user, status)               # Type + value + location
+sh.trace                              # @sh.trace decorator
+sh.dict_diff(old, new)               # Deep dict comparison
 ```
 
-### 11. Markdown Rendering
-
+### 🎮 Games & Fun
 ```python
-sh.markdown("""
-# Main Title
-## Subtitle
-### Section
-
-- Bullet point one
-- Bullet point two
-
-> This is a blockquote
-
-**Bold text**
-""")
+sh.slot(5)                            # 🍒 Slot machine
+sh.coin_flip()                        # 🪙 Coin flip
+sh.magic8()                           # 🎱 Magic 8 ball
+sh.dice(6, 2)                        # 🎲 Dice roller
+sh.spin_wheel(["A","B","C"])         # 🎡 Spin wheel
+sh.matrix(10)                         # Matrix rain
+sh.confetti(5)                        # 🎉 Confetti
+sh.marquee("Breaking News!")         # Scrolling text
+sh.particles(5)                       # Particle animation
 ```
 
-### 12. Bar Charts
-
+### 🎨 Visual Effects
 ```python
-sh.bar({
-    "Python": 85,
-    "JavaScript": 62,
-    "Go": 45,
-    "Rust": 38,
-    "Ruby": 22,
-}, title="Language Usage", color="magenta")
+sh.rainbow("Hello World")            # 🌈 Rainbow text
+sh.gradient_text("Gradient")         # Color gradient
+sh.neon("NEON")                       # Neon glow
+sh.typewrite("Hello...")             # Typewriter effect
+sh.color_picker()                     # ANSI color browser
+sh.color_grid()                       # RGB color grid
 ```
 
-### 13. Timeline
-
+### 📝 Text Utilities
 ```python
-sh.timeline([
-    {"date": "Jan 2024", "title": "v1.0 Released", "desc": "Initial launch with 17 features"},
-    {"date": "Mar 2024", "title": "v1.5 Update", "desc": "Added tables and metrics"},
-    {"date": "Jun 2024", "title": "v2.0 Major", "desc": "19 new features added"},
-])
+sh.wrap_text(long_text, width=60)    # Word wrap
+sh.truncate(text, 50)                 # Smart truncation
+sh.align_text("Hi", 40, "center")   # Text alignment
+sh.highlight(text, "keyword")        # Keyword highlight
+sh.ordinal(42)                        # → "42nd"
+sh.pluralize("file", 3)              # → "files"
+sh.camel_case("hello world")         # → "helloWorld"
+sh.snake_case("HelloWorld")          # → "hello_world"
+sh.strip_ansi(escaped)               # Remove ANSI
 ```
 
-### 14. Columns
-
+### 🖼️ Images & QR
 ```python
-features = ["success()", "error()", "table()", "code()", "tree()",
-            "diff()", "json()", "bar()", "qr()", "live()"]
-
-sh.columns(features, cols=3)
+sh.qr("https://github.com")          # Terminal QR code
+sh.image("photo.jpg", width=80)      # Image → ASCII (needs Pillow)
+sh.screenshot("output.txt")          # Capture terminal
 ```
 
-### 15. Badges
-
+### ⌨️ Interactive
 ```python
-print(sh.badge("v2.0", "green"))
-print(sh.badge("BETA", "yellow"))
-print(sh.badge("ERROR", "red"))
-print(sh.badge("INFO", "cyan"))
+sh.confirm("Deploy?")                 # Yes/No prompt
+sh.choice("Select:", ["A","B","C"])  # Pick from list
+sh.input("Name:", default="World")   # Styled input
+sh.form([("Name:",str),("Age:",int)]) # Multi-field form
+sh.toggle("Dark Mode", True)         # Toggle switch
+sh.autocomplete("Search:", options)  # Filter-as-you-type
+sh.menu(["Deploy","Rollback"])       # Arrow-key menu
 ```
 
-### 16. QR Codes
-
+### 🎧 Audio & Clipboard
 ```python
-sh.qr("https://github.com/adnanahamed66772ndpc/shinyshell", title="Scan to visit repo")
-sh.qr("Hello World")
+sh.audio_beep(3)                      # Terminal beep
+sh.audio_ding()                       # System ding
+sh.clipboard_copy("Hello")           # Copy to clipboard
+sh.notify("Build complete")          # Desktop notification
 ```
 
-### 17. Clickable Links
-
+### 🔧 Decorators & Utils
 ```python
-print(sh.link("Visit GitHub", "https://github.com/adnanahamed66772ndpc/shinyshell"))
-print(sh.link("Documentation", "https://pypi.org/project/shinyshell/"))
+@sh.trace                             # Auto-log function calls
+@sh.retry(3)                          # Auto-retry on failure
+@sh.throttle(1.0)                     # Rate limiting
+@sh.background                        # Run in background thread
+
+sh.batch(items, 10, callback=fn)     # Batch processor
+sh.sleep(5, "Cooling down")          # Pretty sleep
 ```
 
-### 18. Secret Masking
-
+### 🔗 Utility Methods
 ```python
-print(sh.secret("sk-abc123def456ghi789"))  # Output: sk-a****i789
-print(sh.secret("my-password-here", visible=2))  # Output: my********re
+sh.link("GitHub", url)               # Clickable link
+sh.badge("v5.0", "green")            # Colored badge
+sh.emoji("rocket")                    # → 🚀
+sh.venn({1,2,3}, {2,3,4})           # Set comparison
+sh.calendar(2026, 7)                 # Monthly calendar
+sh.pipe(data).table().metrics()      # Chained output
 ```
 
-### 19. Emoji Lookup
-
+### 📼 Session
 ```python
-print(sh.emoji("rocket"))     # 🚀
-print(sh.emoji("fire"))       # 🔥
-print(sh.emoji("star"))       # ⭐
-print(sh.emoji("party"))      # 🎉
-```
-
-### 20. Environment Variables
-
-```python
-# Show all env vars
-sh.env()
-
-# Filter by prefix
-sh.env("PYTHON")
-sh.env("AWS_")
-
-# Security: KEY, SECRET, TOKEN, PASSWORD values are auto-masked
-```
-
-### 21. Version Info
-
-```python
-sh.version()
-# Output: Python, OS, shinyshell version, terminal size, color support
-```
-
-### 22. Debug
-
-```python
-user = {"name": "Alice", "age": 30}
-status = "active"
-
-sh.debug(user, status)
-
-# Output:
-# 🔍 app.py:42
-#  arg0 dict {'name': 'Alice', 'age': 30}
-#  arg1 str 'active'
+sh.session_start("debug")            # Record session
+# ... your code ...
+sh.session_stop()                     # Stop recording
 ```
 
 ---
 
-### 23. Benchmark
+## 📊 Feature Count by Category
 
-```python
-with sh.benchmark("Processing data"):
-    # Your heavy computation here
-    data = [i**2 for i in range(1000000)]
-
-# Output:
-# ⏱️  Processing data ........ 0.12s
-```
-
-### 24. Progress Bar
-
-```python
-update = sh.progress("Uploading files")
-for i in range(100):
-    time.sleep(0.02)
-    update(i + 1, 100)
-```
-
-### 25. Steps Tracker
-
-```python
-step = sh.steps("Deploy to Production", total=5)
-
-step("Building Docker image...")
-step("Running tests...")
-step("Pushing to registry...")
-step("Updating service...")
-step("Health check...")
-```
-
-### 26. Animated Spinner
-
-```python
-sh.spinner("Installing dependencies...", duration=2.0)
-```
-
-### 27. Countdown
-
-```python
-sh.countdown(5, "Launching rocket")
-```
-
-### 28. Live Display
-
-```python
-with sh.live() as display:
-    for i in range(100):
-        display(f"Processing... {i+1}%")
-        time.sleep(0.03)
-```
-
-### 29. Confirm (Yes/No)
-
-```python
-if sh.confirm("Deploy to production?"):
-    sh.success("Deploying...")
-else:
-    sh.info("Deployment cancelled")
-```
-
-### 30. Choice (Pick from options)
-
-```python
-env = sh.choice("Select environment:", ["Development", "Staging", "Production"])
-sh.info(f"Selected: {env}")
-```
-
-### 31. Function Trace Decorator
-
-```python
-@sh.trace
-def process_data(items):
-    return len(items) * 2
-
-result = process_data([1, 2, 3, 4, 5])
-
-# Output:
-# ⚙️ process_data([1, 2, 3, 4, 5]) → 0.001s
-
-# Disable argument logging for sensitive functions:
-@sh.trace(log_args=False)
-def login(username, password):
-    return True
-```
-
-### 32. Image to ASCII Art
-
-```python
-sh.image("screenshot.png", width=80)
-sh.image("logo.jpg", width=60)
-
-# Requires: pip install Pillow (optional)
-```
-
-### 33. Gradient Ruler
-
-```python
-sh.rule()
-sh.rule("API Response")
-```
-
----
-
-## 🔧 Configuration
-
-```python
-sh = Shell(
-    color=True,   # Enable/disable ANSI colors
-    width=100,    # Custom terminal width
-)
-```
-
----
-
-## 📊 Feature Summary
-
-| Category | Features |
-|----------|----------|
-| Messages | `success`, `error`, `warning`, `info` |
-| Layout | `header`, `banner`, `hr`, `rule`, `box` |
-| Data Display | `table`, `metrics`, `json`, `bar`, `timeline`, `columns` |
-| Code | `code`, `diff`, `markdown` |
-| Progress | `spinner`, `progress`, `steps`, `countdown`, `benchmark`, `live` |
-| Interactive | `confirm`, `choice` |
-| Debug | `debug`, `trace`, `version`, `env` |
-| Files | `tree`, `image` |
-| Utilities | `badge`, `secret`, `link`, `emoji`, `qr` |
-| **Total** | **38 features, 0 dependencies, ~950 lines** |
-
----
-
-## 🌍 Platform Support
-
-| Platform | Status |
-|----------|--------|
-| Linux (GNOME/KDE/tmux) | ✅ Full |
-| macOS (Terminal/iTerm2) | ✅ Full |
-| Windows Terminal | ✅ Full |
-| Windows PowerShell | ✅ Full |
-| Windows CMD | ✅ Full (Win 10+) |
-| VS Code Terminal | ✅ Full |
-| JetBrains Terminal | ✅ Full |
-| CI/CD (GitHub Actions) | ✅ Full |
-
----
-
-## 🤝 Contributing
-
-```bash
-git clone https://github.com/adnanahamed66772ndpc/shinyshell.git
-cd shinyshell
-pip install -e .
-```
-
-Pull requests welcome! Check [issues](https://github.com/adnanahamed66772ndpc/shinyshell/issues) for ideas.
-
----
-
-## 📄 License
-
-MIT — © 2026 [Adnan Ahamed Himal](https://adnanahamedhimal.com)
+| Category | Count | Examples |
+|----------|-------|----------|
+| Messages | 4 | success, error, warning, info |
+| Layout | 7 | header, banner, hr, rule, box |
+| Charts | 11 | pie, bar, line, histogram, scatter, waterfall |
+| Progress | 8 | spinner, progress, countdown, benchmark, live |
+| Code | 6 | code, diff, git_log, stack_trace, pip_list |
+| Network | 6 | http, ping, status, dns, ip_info |
+| Files | 7 | tree, disk_usage, checksum, csv, config |
+| Data | 9 | json, markdown, xml, yaml, hexdump, jwt |
+| Games | 9 | slot, coin, magic8, dice, matrix, confetti |
+| Visual | 7 | rainbow, gradient, neon, typewrite, particles |
+| Text | 8 | wrap, truncate, align, ordinal, camel_case |
+| Interactive | 8 | confirm, choice, menu, form, autocomplete |
+| Security | 4 | secret, password, debug, dict_diff |
+| Tables | 4 | table, metrics, timeline, grid |
+| Utils | 10 | trace, retry, throttle, batch, link, badge |
+| QR/Image | 4 | qr, image, screenshot, color_picker |
+| Audio | 3 | beep, ding, notify |
+| Session | 2 | start, stop |
+| **TOTAL** | **127** | |
 
 ---
 
 ## ⭐ Support
 
-If this library saved you time, **give it a star** on GitHub. It helps others find it too!
+If this library saved you time, **star the repo** and share it!
+
+```bash
+pip install shinyshell
+```
 
 <p align="center">
-  <a href="https://github.com/adnanahamed66772ndpc/shinyshell">⭐ Star on GitHub</a>
-  &nbsp;·&nbsp;
-  <a href="https://pypi.org/project/shinyshell/">📦 View on PyPI</a>
+  <a href="https://github.com/adnanahamed66772ndpc/shinyshell">⭐ GitHub</a>
+  · <a href="https://pypi.org/project/shinyshell/">📦 PyPI</a>
+  · <a href="https://adnanahamedhimal.com">🌐 Author</a>
 </p>
+
+MIT © 2026 Adnan Ahamed Himal
