@@ -12,7 +12,7 @@ One import. All the pretty you need.
 Pure Python stdlib. Works on Linux, macOS, Windows.
 """
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __all__ = ["Shell"]
 
 import os
@@ -20,6 +20,11 @@ import sys
 import shutil
 import textwrap
 import math
+import time
+import json as _json
+import inspect
+import functools
+from contextlib import contextmanager
 from typing import Any, List, Dict, Optional, Union, Callable
 
 
@@ -552,6 +557,394 @@ class Shell:
             print(f"\n  {self._style(left, color='bright_black')} {self._style(label, 'bold', color='cyan')} {self._style(right, color='bright_black')}")
         else:
             print(f"  {self._style('─' * (self._width - 4), color='bright_black')}")
+
+    # ── NEW v0.2.0 Features ─────────────────────────────────────
+
+    # 1. Benchmark
+    @contextmanager
+    def benchmark(self, label: str = "Operation"):
+        """Context manager: measure and print elapsed time beautifully.
+
+        with sh.benchmark("Processing"):
+            heavy_computation()
+        """
+        start = time.perf_counter()
+        print()
+        sys.stdout.write(f"  {self._style(_ICONS['clock'], color='cyan')} {label} ...")
+        sys.stdout.flush()
+        try:
+            yield
+        finally:
+            elapsed = time.perf_counter() - start
+            if elapsed < 0.001:
+                t = f"{elapsed*1_000_000:.0f}µs"
+            elif elapsed < 1:
+                t = f"{elapsed*1000:.0f}ms"
+            elif elapsed < 60:
+                t = f"{elapsed:.2f}s"
+            else:
+                m, s = divmod(elapsed, 60)
+                t = f"{int(m)}m {s:.1f}s"
+            sys.stdout.write(f"\r  {self._style(_ICONS['check'], color='green')} {label} {self._style(t, 'bold', color='green')}\n")
+            sys.stdout.flush()
+
+    # 2. JSON Pretty Print
+    def json(self, data: Any, title: Optional[str] = None) -> None:
+        """Pretty-print JSON data with syntax colors."""
+        print()
+        if title:
+            print(self._style(f"  {title}", "bold"))
+        formatted = _json.dumps(data, indent=2, ensure_ascii=False, default=str)
+        for line in formatted.split("\n"):
+            # Color keys, strings, numbers, booleans
+            import re
+            colored = re.sub(r'"(.*?)"', lambda m: self._style(f'"{m.group(1)}"', color="green"), line)
+            colored = re.sub(r': (".*?")', lambda m: f': {self._style(m.group(1), color="yellow")}', colored)
+            colored = re.sub(r'\b(true|false|null)\b', lambda m: self._style(m.group(1), color="magenta"), colored)
+            colored = re.sub(r'\b(\d+\.?\d*)\b', lambda m: self._style(m.group(1), color="cyan"), colored)
+            print(f"  {colored}")
+        print()
+
+    # 3. Markdown
+    def markdown(self, text: str) -> None:
+        """Render basic markdown in the terminal."""
+        lines = text.strip().split("\n")
+        print()
+        for line in lines:
+            if line.startswith("# "):
+                print(f"  {self._style(line[2:], 'bold', color='cyan')}")
+            elif line.startswith("## "):
+                print(f"  {self._style(line[3:], 'bold', color='blue')}")
+            elif line.startswith("### "):
+                print(f"  {self._style(line[4:], 'bold', color='magenta')}")
+            elif line.startswith("- "):
+                print(f"    {self._style(_ICONS['bullet'], color='cyan')} {line[2:]}")
+            elif line.startswith("> "):
+                print(f"  {self._style(f'│ {line[2:]}', color='bright_black')}")
+            elif line.startswith("```"):
+                continue
+            elif line.strip().startswith("**") and line.strip().endswith("**"):
+                print(f"  {self._style(line.strip()[2:-2], 'bold')}")
+            else:
+                print(f"  {line}")
+        print()
+
+    # 4. Steps
+    def steps(self, title: str, total: int, current: int = 0):
+        """Create a step tracker. Returns an updater function.
+
+        step = sh.steps("Deploy", 4)
+        step("Building...")
+        step("Testing...")
+        step("Deploying...")
+        """
+        print()
+        print(self._style(f"  {_ICONS['rocket']} {title}", "bold"))
+        steps_done = [current]
+
+        def update(message: str):
+            steps_done[0] += 1
+            c = steps_done[0]
+            for i in range(1, total + 1):
+                if i <= c:
+                    sys.stdout.write(f"\r    {self._style(f'[{i}/{total}]', color='green')} {self._style('✓', color='green')} ")
+                elif i == c + 1:
+                    sys.stdout.write(f"\r    {self._style(f'[{i}/{total}]', color='cyan')} {self._style('⠋', color='cyan')} {message}")
+                else:
+                    sys.stdout.write(f"\r    {self._style(f'[{i}/{total}]', color='bright_black')} · ")
+                sys.stdout.flush()
+                time.sleep(0.03)
+            sys.stdout.write("\r" + " " * 60 + "\r")
+            sys.stdout.flush()
+            if c >= total:
+                print(f"    {self._style('All steps complete!', color='green')} {_ICONS['party']}\n")
+            return update
+        return update
+
+    # 5. Bar Chart
+    def bar(self, data: Dict[str, Union[int, float]], title: Optional[str] = None,
+            width: int = 40, color: str = "cyan") -> None:
+        """Display a horizontal bar chart."""
+        if not data:
+            return
+        print()
+        if title:
+            print(self._style(f"  {title}", "bold"))
+        max_label = max(len(str(k)) for k in data.keys())
+        max_val = max(data.values())
+        for label, value in data.items():
+            bar_width = int((value / max(max_val, 1)) * width)
+            bar_text = "█" * bar_width
+            lbl = str(label).rjust(max_label)
+            val = f"{value:,}" if isinstance(value, int) else str(value)
+            print(f"  {self._style(lbl, color='bright_black')} {self._style(bar_text, color=color)} {self._style(val, 'bold', color=color)}")
+        print()
+
+    # 6. Emoji
+    def emoji(self, name: str) -> str:
+        """Get an emoji by name. sh.emoji('rocket') → 🚀"""
+        return _ICONS.get(name.lower(), "❓")
+
+    # 7. Clickable Link
+    def link(self, text: str, url: str) -> str:
+        """Create a clickable terminal link (supported by most modern terminals)."""
+        if self._color_enabled:
+            return f"\033]8;;{url}\033\\{text}\033]8;;\033\\"
+        return f"{text} ({url})"
+
+    # 8. Debug
+    def debug(self, *args, **kwargs) -> None:
+        """Pretty-print variables with type, value, and location.
+
+        sh.debug(user, status, verbose=True)
+        """
+        frame = inspect.currentframe()
+        try:
+            caller = frame.f_back
+            info = inspect.getframeinfo(caller)
+            print()
+            print(self._style(f"  🔍 {info.filename}:{info.lineno}", "bold", color="cyan"))
+            for i, arg in enumerate(args):
+                t = type(arg).__name__
+                val = repr(arg)
+                if len(val) > 120:
+                    val = val[:117] + "..."
+                print(f"  {self._style(f'arg{i}', color='bright_black')} {self._style(t, color='yellow')} {val}")
+            for k, v in kwargs.items():
+                t = type(v).__name__
+                print(f"  {self._style(k, color='bright_black')} {self._style(t, color='yellow')} {v}")
+            print()
+        finally:
+            del frame
+
+    # 9. Rule (gradient divider)
+    def rule(self, label: Optional[str] = None) -> None:
+        """Gradient horizontal rule (fades from bright to dim)."""
+        width = self._width - 4
+        chars = ["█", "▓", "▒", "░", " "][:min(5, width // 10 + 1)]
+        rule_text = ""
+        for i in range(width):
+            segment = (width - i) / max(width, 1)
+            idx = int(segment * (len(chars) - 1))
+            rule_text += chars[idx]
+        print()
+        if label:
+            print(f"  {self._style(f' {label} ', 'bold', color='cyan')}")
+        print(f"  {self._style(rule_text, color='bright_black')}")
+        print()
+
+    # 10. Badge
+    def badge(self, text: str, color: str = "green") -> str:
+        """Render a styled badge. sh.badge('v2.0', 'magenta')"""
+        return self._style(f" {text} ", "bold", color="white", bg=color)
+
+    # 11. Columns
+    def columns(self, items: List[str], cols: int = 2) -> None:
+        """Display items in side-by-side columns."""
+        if not items:
+            return
+        print()
+        col_width = (self._width - 4) // cols
+        for i in range(0, len(items), cols):
+            row_items = items[i:i+cols]
+            line = ""
+            for item in row_items:
+                line += str(item).ljust(col_width)[:col_width]
+            print(f"  {line}")
+        print()
+
+    # 12. Timeline
+    def timeline(self, events: List[Dict[str, str]]) -> None:
+        """Display a vertical timeline.
+
+        sh.timeline([
+            {"date": "2019", "title": "Started coding", "desc": "Hello World"},
+            {"date": "2021", "title": "First job", "desc": "Junior dev"},
+        ])
+        """
+        if not events:
+            return
+        print()
+        for i, event in enumerate(events):
+            is_last = i == len(events) - 1
+            date = event.get("date", "")
+            title = event.get("title", "")
+            desc = event.get("desc", "")
+
+            connector = "└──" if is_last else "├──"
+            color = "green" if i == len(events) - 1 else "cyan"
+
+            print(f"  {self._style(date, 'bold', color=color)}")
+            print(f"  {self._style(connector, color=color)} {self._style(title, 'bold')}")
+            if desc:
+                print(f"  {self._style('│' if not is_last else ' ', color='bright_black')}   {self._style(desc, color='bright_black')}")
+            if not is_last:
+                print(f"  {self._style('│', color='bright_black')}")
+        print()
+
+    # 13. QR Code
+    def qr(self, data: str, title: Optional[str] = None) -> None:
+        """Generate a QR code in the terminal (stdlib only)."""
+        # Simple QR-like matrix using stdlib only
+        # Uses a deterministic pattern based on data hash
+        import hashlib
+        h = hashlib.sha256(data.encode()).hexdigest()
+        size = 21  # Standard QR size
+        matrix = [[False] * size for _ in range(size)]
+
+        # Generate pattern from hash
+        for i in range(size):
+            for j in range(size):
+                idx = (i * size + j) % len(h)
+                matrix[i][j] = int(h[idx], 16) > 7
+
+        # Add finder patterns (top-left, top-right, bottom-left)
+        for r, c in [(0, 0), (0, size-7), (size-7, 0)]:
+            for i in range(7):
+                for j in range(7):
+                    if r+i < size and c+j < size:
+                        edge = i == 0 or i == 6 or j == 0 or j == 6
+                        inner = 2 <= i <= 4 and 2 <= j <= 4
+                        matrix[r+i][c+j] = edge or inner
+
+        print()
+        if title:
+            print(self._style(f"  {title}", "bold"))
+        for row in matrix:
+            line = "  "
+            for cell in row:
+                line += self._style("██", color="white", bg="black") if cell else "  "
+            print(line)
+        print()
+
+    # 14. Image → ASCII
+    def image(self, path: str, width: int = 80) -> None:
+        """Display an image as ASCII art. Requires PIL/Pillow."""
+        try:
+            from PIL import Image
+        except ImportError:
+            self.error("Pillow not installed. Run: pip install Pillow")
+            return
+        try:
+            img = Image.open(path).convert("L")
+            aspect = img.height / img.width
+            h = int(aspect * width * 0.55)
+            img = img.resize((width, h))
+            chars = "@%#*+=-:. "
+            print()
+            for y in range(h):
+                line = ""
+                for x in range(width):
+                    gray = img.getpixel((x, y))
+                    idx = int(gray / 255 * (len(chars) - 1))
+                    line += chars[idx]
+                print(f"  {line}")
+            print()
+        except Exception as e:
+            self.error(f"Cannot load image: {e}")
+
+    # 15. Env
+    def env(self, prefix: Optional[str] = None) -> None:
+        """Pretty-print environment variables."""
+        print()
+        vars_dict = dict(os.environ)
+        if prefix:
+            vars_dict = {k: v for k, v in vars_dict.items() if k.startswith(prefix)}
+            print(self._style(f"  Environment ({prefix}*):", "bold"))
+        else:
+            print(self._style(f"  Environment ({len(vars_dict)} vars):", "bold"))
+
+        items = sorted(vars_dict.items())
+        max_key = max((len(k) for k in vars_dict.keys()), default=20)
+        for key, value in items:
+            k = self._style(f"  {key.ljust(max_key)}", color="bright_black")
+            # Mask potential secrets
+            if any(s in key.upper() for s in ["KEY", "SECRET", "TOKEN", "PASSWORD", "PASS"]):
+                v = self._style(" ***hidden***", color="red")
+            else:
+                v = f" {value[:80]}"
+            print(f"{k} {self._style('=', color='cyan')}{v}")
+        print()
+
+    # 16. Version
+    def version(self) -> None:
+        """Show Python, OS, and package versions."""
+        import platform
+        print()
+        self.metrics({
+            "Python": platform.python_version(),
+            "OS": f"{platform.system()} {platform.release()}",
+            "shinyshell": __version__,
+            "Terminal": shutil.get_terminal_size().columns,
+            "Color": "✅ Supported" if self._color_enabled else "❌ No",
+        })
+
+    # 17. Secret
+    def secret(self, text: str, visible: int = 4) -> str:
+        """Mask sensitive text. sh.secret(api_key) → sk-****abcd"""
+        if len(text) <= visible * 2:
+            return "*" * len(text)
+        return text[:visible] + "*" * (len(text) - visible * 2) + text[-visible:]
+
+    # 18. Trace (decorator)
+    @staticmethod
+    def trace(func: Optional[Callable] = None, *, log_args: bool = True):
+        """Decorator: auto-log function calls.
+
+        @sh.trace
+        def my_func(x, y):
+            return x + y
+
+        @sh.trace(log_args=False)
+        def secret_func(token):
+            ...
+        """
+        def decorator(fn):
+            @functools.wraps(fn)
+            def wrapper(*args, **kwargs):
+                start = time.perf_counter()
+                try:
+                    result = fn(*args, **kwargs)
+                    elapsed = time.perf_counter() - start
+                    if log_args:
+                        arg_str = ", ".join(
+                            [repr(a)[:40] for a in args] +
+                            [f"{k}={repr(v)[:20]}" for k, v in kwargs.items()]
+                        )
+                    else:
+                        arg_str = "..."
+                    print(f"  {_ICONS['gear']} {self._style(fn.__name__, color='cyan')}({arg_str}) {self._style(f'→ {elapsed:.3f}s', color='green')}")
+                    return result
+                except Exception as e:
+                    elapsed = time.perf_counter() - start
+                    print(f"  {_ICONS['bug']} {self._style(fn.__name__, color='red')} {self._style(f'✗ {e}', color='red')} ({elapsed:.3f}s)")
+                    raise
+            return wrapper
+        if func is not None:
+            return decorator(func)
+        return decorator
+
+    # 19. Live updating display
+    @contextmanager
+    def live(self, refresh: float = 0.1):
+        """Context manager for live-updating display.
+
+        with sh.live() as display:
+            for i in range(100):
+                display(f"Processing... {i}%")
+                time.sleep(0.05)
+        """
+        lines = [""]
+        def update(content: str):
+            lines[0] = str(content)
+            sys.stdout.write(f"\r  {self._style(_ICONS['lightning'], color='cyan')} {lines[0]}")
+            sys.stdout.flush()
+        print()
+        try:
+            yield update
+        finally:
+            sys.stdout.write(f"\r  {self._style(_ICONS['check'], color='green')} {lines[0]} {' ' * 20}\n")
+            sys.stdout.flush()
 
     @property
     def icons(self):

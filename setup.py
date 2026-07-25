@@ -6,7 +6,7 @@ with open("README.md", "r") as f:
 
 setup(
     name="shinyshell",
-    version="0.1.0",
+    version="0.2.0",
     author="Adnan Ahamed Himal",
     description="Beautiful terminal output for Python. Zero dependencies.",
     long_description=long_description,
