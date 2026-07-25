@@ -12,7 +12,7 @@ One import. All the pretty you need.
 Pure Python stdlib. Works on Linux, macOS, Windows.
 """
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"
 __all__ = ["Shell"]
 
 import os
@@ -1738,6 +1738,572 @@ class Shell:
             self.success(f"Session saved to {self._session_file}")
         else:
             self.info("No active session recording")
+
+    # ── v0.5.0 — 100+ NEW Features ────────────────────────────────
+
+    # CHARTS
+    def pie(self, data: Dict[str, float], title: Optional[str] = None, size: int = 10) -> None:
+        """ASCII pie chart. sh.pie({'Python':45, 'JS':30, 'Go':15, 'Rust':10})"""
+        total = sum(data.values())
+        if total == 0: return
+        chars = " ▏▎▍▌▋▊▉█"
+        print()
+        if title: print(self._style(f"  {title}", "bold"))
+        for label, val in data.items():
+            pct = val / total
+            bar_len = int(pct * size * 8)
+            full = bar_len // 8
+            rem = bar_len % 8
+            bar_str = "█" * full + (chars[rem] if rem else "")
+            print(f"  {self._style(label, color='bright_black'):12s} {self._style(bar_str, color='cyan')} {self._style(f'{pct*100:.0f}%', 'bold')}")
+        print()
+
+    def line_chart(self, data: List[float], title: Optional[str] = None, height: int = 10, width: int = 40) -> None:
+        """ASCII line chart. sh.line_chart([1,5,2,8,3,9,4,7])"""
+        if not data: return
+        mn, mx = min(data), max(data)
+        rng = max(mx - mn, 1)
+        print()
+        if title: print(self._style(f"  {title}", "bold"))
+        step = max(1, len(data) // width)
+        pts = [data[i*step] for i in range(min(width, len(data) // max(step, 1)))]
+        for y in range(height, -1, -1):
+            line = "  "
+            val_at_y = mn + (rng * y / height)
+            for i, v in enumerate(pts):
+                if abs(v - val_at_y) < rng / height / 2:
+                    line += self._style("●", color="cyan")
+                elif (v > val_at_y and (i == 0 or pts[i-1] <= val_at_y < v)) or \
+                     (v < val_at_y and (i == 0 or pts[i-1] >= val_at_y > v)):
+                    line += self._style("│", color="cyan")
+                else:
+                    line += " "
+            print(line)
+        print(f"  {self._style(f'{mn} — {mx}', color='bright_black')}")
+        print()
+
+    def histogram(self, data: List[float], bins: int = 10, title: Optional[str] = None) -> None:
+        """Histogram. sh.histogram([1,2,2,3,3,3,4,4,5])"""
+        from collections import Counter
+        if not data: return
+        mn, mx = min(data), max(data)
+        bin_w = max((mx - mn) / bins, 0.01)
+        counts = [0] * bins
+        for v in data:
+            idx = min(int((v - mn) / bin_w), bins - 1)
+            counts[idx] += 1
+        max_c = max(counts)
+        print()
+        if title: print(self._style(f"  {title}", "bold"))
+        for i, c in enumerate(counts):
+            bar = "█" * int(c / max_c * 30) if max_c else ""
+            print(f"  {self._style(f'{mn + i*bin_w:.1f}', color='bright_black'):8s} {self._style(bar, color='cyan')} {c}")
+        print()
+
+    def scatter(self, points: List[tuple], title: Optional[str] = None, h: int = 12, w: int = 40) -> None:
+        """Scatter plot. sh.scatter([(1,2),(3,5),(4,3)])"""
+        if not points: return
+        xs = [p[0] for p in points]; ys = [p[1] for p in points]
+        xr = max(xs) - min(xs) or 1; yr = max(ys) - min(ys) or 1
+        grid = [[" " for _ in range(w)] for _ in range(h)]
+        for x, y in points:
+            px = int((x - min(xs)) / xr * (w - 1))
+            py = h - 1 - int((y - min(ys)) / yr * (h - 1))
+            if 0 <= py < h and 0 <= px < w:
+                grid[py][px] = "●"
+        print()
+        if title: print(self._style(f"  {title}", "bold"))
+        for row in grid: print("  " + "".join(row))
+        print()
+
+    def donut(self, data: Dict[str, float], title: Optional[str] = None) -> None:
+        """Donut chart (same as pie). sh.donut({'A':30,'B':20,'C':50})"""
+        self.pie(data, title=title)
+
+    def waterfall(self, items: List[tuple], title: Optional[str] = None) -> None:
+        """Waterfall chart. sh.waterfall([('Start',100),('+Sales',50),('-Cost',-30),('End',120)])"""
+        print()
+        if title: print(self._style(f"  {title}", "bold"))
+        running = 0
+        for label, val in items:
+            running += val
+            bar_len = abs(val) // 2
+            bar = "█" * min(bar_len, 40)
+            color = "green" if val >= 0 else "red"
+            print(f"  {self._style(label, color='bright_black'):12s} {self._style(bar, color=color)} {val:+d}")
+        print(f"  {'─'*20} {running}")
+
+    def bullet_graph(self, label: str, value: float, target: float, max_val: float = 100) -> None:
+        """Bullet graph. sh.bullet_graph('Revenue', 75, 90, 100)"""
+        bar = "█" * int(value / max_val * 30)
+        target_pos = int(target / max_val * 30)
+        line = list(bar.ljust(30))
+        if target_pos < 30:
+            line[target_pos] = self._style("┃" if line[target_pos] == " " else "┃", color="red")
+        else:
+            line = "".join(line)
+        print(f"  {label:12s} {''.join(line) if isinstance(line, list) else line} {value}/{max_val}")
+
+    # FUN & GAMES
+    def slot(self, spins: int = 3) -> List[str]:
+        """Slot machine animation. sh.slot(5)"""
+        import random as _r
+        icons_list = ["🍒","🍋","🍊","🍇","💎","7️⃣","⭐","🔔"]
+        print()
+        for i in range(spins):
+            result = [_r.choice(icons_list) for _ in range(3)]
+            sys.stdout.write(f"\r  [ {result[0]} | {result[1]} | {result[2]} ]    ")
+            sys.stdout.flush()
+            time.sleep(0.15)
+        print()
+        if result[0] == result[1] == result[2]:
+            self.success(f"JACKPOT! {result[0]}{result[1]}{result[2]}")
+        return result
+
+    def coin_flip(self) -> str:
+        """Animated coin flip. sh.coin_flip()"""
+        import random as _r
+        faces = ["Heads 🪙", "Tails 🪙"]
+        print()
+        for _ in range(8):
+            sys.stdout.write(f"\r  {_r.choice(faces)}  ")
+            sys.stdout.flush()
+            time.sleep(0.08)
+        result = _r.choice(faces)
+        print(f"\r  {result}  ")
+        return result
+
+    def magic8(self) -> str:
+        """Magic 8 ball. sh.magic8()"""
+        import random as _r
+        answers = ["It is certain ✅","Yes 👍","Ask again 🔄","Cannot predict now 🤷","No 👎","Very doubtful ❌"]
+        print()
+        for _ in range(6):
+            sys.stdout.write(f"\r  🎱 {_r.choice(answers)}  ")
+            sys.stdout.flush()
+            time.sleep(0.1)
+        result = _r.choice(answers)
+        print(f"\r  🎱 {result}  ")
+        return result
+
+    def spin_wheel(self, options: List[str]) -> str:
+        """Spin the wheel. sh.spin_wheel(['Prize A','Prize B','Prize C'])"""
+        import random as _r
+        print()
+        for _ in range(15):
+            sys.stdout.write(f"\r  🎡 {_r.choice(options)}  ")
+            sys.stdout.flush()
+            time.sleep(0.08)
+        result = _r.choice(options)
+        print(f"\r  🎡 {self._style(result, 'bold', color='green')}  ")
+        return result
+
+    # TEXT UTILS
+    def wrap_text(self, text: str, width: int = 60) -> None:
+        """Word wrap. sh.wrap_text(long_text, width=50)"""
+        import textwrap as _tw
+        print()
+        for line in _tw.wrap(text, width=width - 4):
+            print(f"  {line}")
+        print()
+
+    def truncate(self, text: str, max_len: int = 80, suffix: str = "...") -> str:
+        """Smart truncate. sh.truncate(text, 50)"""
+        return text[:max_len - len(suffix)] + suffix if len(text) > max_len else text
+
+    def align_text(self, text: str, width: int = 60, direction: str = "center") -> str:
+        """Text alignment. sh.align_text('Hello', 40, 'center')"""
+        if direction == "center": return text.center(width)
+        elif direction == "right": return text.rjust(width)
+        return text.ljust(width)
+
+    def highlight(self, text: str, word: str, color: str = "yellow") -> str:
+        """Keyword highlight. sh.highlight('Hello World', 'World', 'green')"""
+        return text.replace(word, self._style(word, "bold", color=color, bg=color))
+
+    def ordinal(self, n: int) -> str:
+        """Ordinal suffix. sh.ordinal(42) → '42nd'"""
+        suffix = {1:"st",2:"nd",3:"rd"}.get(n % 10 if n % 100 not in [11,12,13] else 0, "th")
+        return f"{n}{suffix}"
+
+    def pluralize(self, word: str, count: int) -> str:
+        """Smart plural. sh.pluralize('file', 3) → 'files'"""
+        return word + ("s" if count != 1 else "")
+
+    def strip_ansi(self, text: str) -> str:
+        """Remove ANSI codes. sh.strip_ansi('\\033[31mred')"""
+        import re
+        return re.sub(r'\033\[[0-9;]*m', '', text)
+
+    def camel_case(self, text: str) -> str:
+        """Convert to camelCase. sh.camel_case('hello world')"""
+        words = text.replace('-',' ').replace('_',' ').split()
+        return words[0].lower() + ''.join(w.capitalize() for w in words[1:]) if words else ""
+
+    def snake_case(self, text: str) -> str:
+        """Convert to snake_case"""
+        import re
+        return re.sub(r'(?<!^)(?=[A-Z])', '_', text).replace(' ','_').replace('-','_').lower()
+
+    # FILE SYSTEM
+    def disk_usage(self, path: str = ".") -> None:
+        """Disk usage with bar. sh.disk_usage('/')"""
+        import shutil as _sh
+        try:
+            usage = _sh.disk_usage(path)
+            gb = 1024**3
+            print()
+            self.gauge(usage.used / gb, usage.total / gb, f"Disk: {path}", 40)
+        except Exception as e:
+            self.error(f"Error: {e}")
+
+    def file_permissions(self, path: str) -> None:
+        """Permission viewer. sh.file_permissions('app.py')"""
+        try:
+            mode = os.stat(path).st_mode
+            perms = ""
+            for who in ["USR", "GRP", "OTH"]:
+                for perm in ["R", "W", "X"]:
+                    bit = {"USR":{"R":0o400,"W":0o200,"X":0o100},
+                           "GRP":{"R":0o040,"W":0o020,"X":0o010},
+                           "OTH":{"R":0o004,"W":0o002,"X":0o001}}[who][perm]
+                    perms += perm.lower() if mode & bit else "-"
+            print(f"  {perms} {path}")
+        except Exception:
+            pass
+
+    def checksum(self, path: str, algo: str = "md5") -> str:
+        """File hash with progress. sh.checksum('file.bin', 'sha256')"""
+        import hashlib
+        h = hashlib.new(algo)
+        size = os.path.getsize(path)
+        with open(path, "rb") as f:
+            for chunk in iter(lambda: f.read(8192), b""):
+                h.update(chunk)
+        return h.hexdigest()
+
+    # NETWORK
+    def dns_lookup(self, domain: str) -> None:
+        """DNS lookup. sh.dns_lookup('google.com')"""
+        import socket
+        print()
+        try:
+            ips = socket.getaddrinfo(domain, None)
+            self.success(f"{domain}:")
+            seen = set()
+            for ip in ips:
+                addr = ip[4][0]
+                if addr not in seen:
+                    seen.add(addr)
+                    print(f"    {addr}")
+        except Exception as e:
+            self.error(f"DNS error: {e}")
+        print()
+
+    def ip_info(self, ip: Optional[str] = None) -> None:
+        """IP geolocation. sh.ip_info('8.8.8.8')"""
+        import urllib.request, json
+        try:
+            url = f"http://ip-api.com/json/{ip or ''}"
+            resp = urllib.request.urlopen(url, timeout=5)
+            data = json.loads(resp.read())
+            if data.get("status") == "success":
+                self.metrics({
+                    "IP": data.get("query",""),
+                    "Country": data.get("country",""),
+                    "City": data.get("city",""),
+                    "ISP": data.get("isp",""),
+                    "Org": data.get("org",""),
+                })
+        except Exception as e:
+            self.error(f"IP lookup: {e}")
+
+    # DATA FORMATS
+    def yaml_view(self, text: str, title: Optional[str] = None) -> None:
+        """YAML viewer (basic). sh.yaml_view(yaml_string)"""
+        print()
+        if title: print(self._style(f"  {title}", "bold"))
+        for line in text.strip().split("\n"):
+            if ":" in line and not line.strip().startswith("#"):
+                k, v = line.split(":", 1)
+                print(f"  {self._style(k.strip(), color='green')}: {self._style(v.strip(), color='yellow')}")
+            elif line.strip().startswith("#"):
+                print(f"  {self._style(line, color='bright_black')}")
+            else:
+                print(f"  {line}")
+        print()
+
+    def base64_encode(self, text: str) -> str:
+        """Base64 encode. sh.base64_encode('hello')"""
+        import base64
+        return base64.b64encode(text.encode()).decode()
+
+    def base64_decode(self, encoded: str) -> str:
+        """Base64 decode"""
+        import base64
+        return base64.b64decode(encoded).decode()
+
+    def uuid_gen(self, count: int = 1) -> List[str]:
+        """UUID generator. sh.uuid_gen(5)"""
+        import uuid
+        uuids = [str(uuid.uuid4()) for _ in range(count)]
+        print()
+        for u in uuids:
+            print(f"  {self._style(u, color='cyan')}")
+        print()
+        return uuids
+
+    def hexdump(self, data: bytes, title: Optional[str] = None, max_lines: int = 20) -> None:
+        """Hex dump viewer. sh.hexdump(b'hello world')"""
+        print()
+        if title: print(self._style(f"  {title}", "bold"))
+        for i in range(0, min(len(data), max_lines * 16), 16):
+            chunk = data[i:i+16]
+            hex_part = " ".join(f"{b:02x}" for b in chunk)
+            ascii_part = "".join(chr(b) if 32 <= b < 127 else "." for b in chunk)
+            print(f"  {i:08x}  {hex_part:48s}  {ascii_part}")
+        print()
+
+    def jwt_decode(self, token: str) -> None:
+        """JWT decoder. sh.jwt_decode('eyJ...')"""
+        import base64, json
+        try:
+            parts = token.split(".")
+            if len(parts) >= 2:
+                for i, part in enumerate(parts[:2]):
+                    padded = part + "=" * (4 - len(part) % 4)
+                    decoded = json.loads(base64.urlsafe_b64decode(padded))
+                    label = ["Header", "Payload"][i]
+                    print(f"\n  {self._style(label, 'bold', color='cyan')}:")
+                    self.json(decoded)
+        except Exception as e:
+            self.error(f"JWT decode: {e}")
+
+    def url_parse(self, url: str) -> None:
+        """URL parser. sh.url_parse('https://user:pass@example.com:8080/path?q=1#frag')"""
+        from urllib.parse import urlparse, parse_qs
+        p = urlparse(url)
+        self.metrics({
+            "Scheme": p.scheme,
+            "Host": p.hostname or "",
+            "Port": p.port or "default",
+            "Path": p.path or "/",
+            "Query": str(parse_qs(p.query)),
+            "Fragment": p.fragment or "",
+        })
+
+    # UTILS
+    def sleep(self, seconds: float, message: str = "Waiting") -> None:
+        """Pretty sleep. sh.sleep(5, 'Cooling down')"""
+        for i in range(int(seconds * 10)):
+            sys.stdout.write(f"\r  💤 {message}... {i/10:.1f}s  ")
+            sys.stdout.flush()
+            time.sleep(0.1)
+        print()
+
+    def background(self, func: Callable):
+        """Run in background thread. @sh.background"""
+        import threading
+        def wrapper(*a, **kw):
+            t = threading.Thread(target=func, args=a, kwargs=kw, daemon=True)
+            t.start()
+            return t
+        return wrapper
+
+    def retry(self, max_attempts: int = 3, delay: float = 1.0):
+        """Retry decorator. @sh.retry(3)"""
+        def decorator(fn):
+            @functools.wraps(fn)
+            def wrapper(*a, **kw):
+                last_err = None
+                for attempt in range(max_attempts):
+                    try:
+                        return fn(*a, **kw)
+                    except Exception as e:
+                        last_err = e
+                        if attempt < max_attempts - 1:
+                            time.sleep(delay * (attempt + 1))
+                raise last_err
+            return wrapper
+        return decorator
+
+    def throttle(self, seconds: float):
+        """Rate limit decorator. @sh.throttle(1.0)"""
+        last_call = [0.0]
+        def decorator(fn):
+            @functools.wraps(fn)
+            def wrapper(*a, **kw):
+                elapsed = time.time() - last_call[0]
+                if elapsed < seconds:
+                    time.sleep(seconds - elapsed)
+                last_call[0] = time.time()
+                return fn(*a, **kw)
+            return wrapper
+        return decorator
+
+    def batch(self, items: list, batch_size: int = 10, callback: Optional[Callable] = None) -> list:
+        """Batch processor. sh.batch(items, 10, callback=process)"""
+        results = []
+        total = len(items)
+        for i in range(0, total, batch_size):
+            batch_items = items[i:i+batch_size]
+            update = self.progress(f"Batch {i//batch_size+1}/{(total-1)//batch_size+1}")
+            if callback:
+                results.extend(callback(batch_items))
+            update(1, 1)
+        return results
+
+    # THEMES & EFFECTS
+    def neon(self, text: str, color: str = "magenta") -> str:
+        """Neon glow text. sh.neon('Hello')"""
+        return self._style(f" {text} ", "bold", color=color, bg=color)
+
+    def gradient_text(self, text: str) -> None:
+        """Gradient colored text. sh.gradient_text('Hello World')"""
+        colors_list = ["red", "yellow", "green", "cyan", "blue", "magenta"]
+        result = ""
+        for i, ch in enumerate(text):
+            result += self._style(ch, color=colors_list[i % len(colors_list)])
+        print(f"\n  {result}\n")
+
+    def confetti(self, duration: float = 3.0) -> None:
+        """Confetti animation. sh.confetti(5)"""
+        import random as _r
+        confetti_chars = "🎉🎊✨🌟💫⭐🎈🎀"
+        print()
+        start = time.time()
+        try:
+            while time.time() - start < duration:
+                line = "  " + " ".join(_r.choice(confetti_chars) + _r.choice([" ", "  "]) for _ in range(20))
+                sys.stdout.write(f"\r{line}")
+                sys.stdout.flush()
+                time.sleep(0.15)
+        except KeyboardInterrupt: pass
+        print()
+
+    def marquee(self, text: str, width: int = 40, duration: float = 5.0) -> None:
+        """Scrolling marquee. sh.marquee('Breaking News!')"""
+        text = "   " + text + "   ★   "
+        start = time.time()
+        tlen = len(text)
+        print()
+        try:
+            while time.time() - start < duration:
+                for offset in range(tlen):
+                    visible = (text * 3)[offset:offset + width]
+                    sys.stdout.write(f"\r  {self._style(visible, color='cyan')}")
+                    sys.stdout.flush()
+                    time.sleep(0.1)
+        except KeyboardInterrupt: pass
+        print()
+
+    def particles(self, duration: float = 5.0) -> None:
+        """Particle animation. sh.particles(5)"""
+        import random as _r
+        h, w = 15, 40
+        particles = [(w//2, 0, _r.random()*0.3+0.1) for _ in range(20)]
+        print()
+        start = time.time()
+        try:
+            while time.time() - start < duration:
+                new_p = []
+                sys.stdout.write("\033[J")
+                for x, y, speed in particles:
+                    y += speed
+                    if y < h:
+                        new_p.append((x + (_r.random()-0.5)*0.5, y, speed))
+                        px, py = int(x), int(y)
+                        if 0 <= py < h and 0 <= px < w:
+                            sys.stdout.write(f"\033[{py+1};{px*2+1}H{self._style('•', color='yellow')}")
+                if len(new_p) < 20:
+                    new_p.append((w//2 + (_r.random()-0.5)*10, 0, _r.random()*0.3+0.1))
+                particles = new_p
+                sys.stdout.flush()
+                time.sleep(0.08)
+        except KeyboardInterrupt: pass
+        print()
+
+    # INTERACTIVE
+    def toggle(self, label: str, default: bool = False) -> bool:
+        """Toggle switch. sh.toggle('Dark mode', True)"""
+        state = default
+        display = {True: self._style(' ● ON ', 'bold', color='white', bg='green'),
+                   False: self._style(' ○ OFF ', color='bright_black')}
+        print(f"  {label}: {display[state]}")
+        return state
+
+    def radio_select(self, options: List[str], title: Optional[str] = None) -> Optional[int]:
+        """Radio button select (same as choice). sh.radio_select(['A','B','C'])"""
+        return self.choice(title or "Select:", options)
+
+    def search_filter(self, items: List[str], query: str) -> List[str]:
+        """Filter items. sh.search_filter(['apple','banana','cherry'], 'a')"""
+        return [i for i in items if query.lower() in i.lower()]
+
+    def form(self, fields: List[tuple], title: Optional[str] = None) -> Dict[str, str]:
+        """Multi-field form. sh.form([('Name:',str),('Age:',int)])"""
+        results = {}
+        if title:
+            self.header(title, level=2)
+        for label, _type in fields:
+            val = self.input(label)
+            results[label.strip(':')] = val
+        return results
+
+    def autocomplete(self, prompt: str, options: List[str]) -> Optional[str]:
+        """Autocomplete input. sh.autocomplete('Search:', ['apple','banana','cherry'])"""
+        self.info(f"Options: {', '.join(options[:10])}{'...' if len(options)>10 else ''}")
+        query = self.input(prompt)
+        matches = [o for o in options if query.lower() in o.lower()] if query else options
+        if matches:
+            return self.choice("Matches:", matches[:8])
+        return None
+
+    # DEV TOOLS
+    def pip_list(self, filter_str: str = "") -> None:
+        """Pretty pip list. sh.pip_list('django')"""
+        import subprocess
+        try:
+            result = subprocess.run([sys.executable, "-m", "pip", "list", "--format=columns"],
+                                    capture_output=True, text=True, timeout=10)
+            print()
+            print(self._style("  pip list", "bold", color="cyan"))
+            for line in result.stdout.split("\n"):
+                if not filter_str or filter_str.lower() in line.lower():
+                    if line.strip():
+                        print(f"  {line}")
+            print()
+        except Exception as e:
+            self.error(f"pip error: {e}")
+
+    def stack_trace(self, exc_info=None) -> None:
+        """Pretty stack trace. sh.stack_trace()"""
+        import traceback
+        if exc_info is None:
+            exc_info = sys.exc_info()
+        if exc_info[0]:
+            print()
+            print(self._style("  Stack Trace:", "bold", color="red"))
+            for line in traceback.format_exception(*exc_info):
+                for l in line.split("\n"):
+                    if l.strip():
+                        print(f"  {self._style(l, color='red')}")
+            print()
+
+    def process_info(self, pid: Optional[int] = None) -> None:
+        """Process info. sh.process_info()"""
+        pid = pid or os.getpid()
+        try:
+            import resource
+            usage = resource.getrusage(resource.RUSAGE_SELF)
+            self.metrics({
+                "PID": pid,
+                "Memory (MB)": f"{usage.ru_maxrss / 1024:.1f}",
+                "User CPU (s)": f"{usage.ru_utime:.2f}",
+                "System CPU (s)": f"{usage.ru_stime:.2f}",
+            })
+        except Exception:
+            self.info(f"PID: {pid}")
 
     @property
     def icons(self):
