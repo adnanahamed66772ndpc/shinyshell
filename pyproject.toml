@@ -1,0 +1,68 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "shinyshell"
+version = "0.5.1"
+description = "Python library for beautiful terminal output — colored printing, tables, progress bars, charts, QR codes, and more. Zero dependencies."
+readme = "README.md"
+license = { text = "MIT" }
+authors = [
+    { name = "Adnan Ahamed Himal", email = "hello@adnanahamedhimal.com" },
+]
+keywords = [
+    "terminal", "cli", "console", "pretty", "beautiful", "output",
+    "print", "colors", "ansi", "progress bar", "table", "spinner",
+    "syntax highlighting", "diff", "json", "bar chart", "qr code",
+    "ascii art", "markdown", "debug", "trace", "logging", "bash",
+    "shell", "colored", "formatting", "rich", "colorama", "termcolor",
+    "python library", "python package", "python cli", "python terminal",
+    "developer tools", "devtools", "zero dependency",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Terminals",
+    "Topic :: Software Development :: User Interfaces",
+    "Topic :: Utilities",
+    "Environment :: Console",
+    "Operating System :: OS Independent",
+]
+requires-python = ">=3.8"
+
+[project.optional-dependencies]
+qrcode = ["qrcode>=7.4"]
+image = ["Pillow>=9.0"]
+all = ["qrcode>=7.4", "Pillow>=9.0"]
+
+[project.urls]
+Source = "https://github.com/adnanahamed66772ndpc/shinyshell"
+"Bug Reports" = "https://github.com/adnanahamed66772ndpc/shinyshell/issues"
+Discussions = "https://github.com/adnanahamed66772ndpc/shinyshell/discussions"
+Documentation = "https://github.com/adnanahamed66772ndpc/shinyshell#readme"
+
+[tool.setuptools.packages.find]
+include = ["shinyshell*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py38"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
