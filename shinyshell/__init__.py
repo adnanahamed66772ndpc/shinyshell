@@ -12,7 +12,7 @@ One import. All the pretty you need.
 Pure Python stdlib. Works on Linux, macOS, Windows.
 """
 
-__version__ = "0.6.0"
+__version__ = "0.6.1"
 __all__ = ["Shell"]
 
 import shutil

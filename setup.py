@@ -1,12 +1,12 @@
 """Setup for shinyshell."""
 from setuptools import setup, find_packages
 
-with open("README.md", "r") as f:
+with open("README.md", "r", encoding="utf-8") as f:
     long_description = f.read()
 
 setup(
     name="shinyshell",
-    version="0.6.0",
+    version="0.6.1",
     author="Adnan Ahamed Himal",
     author_email="hello@adnanahamedhimal.com",
     description="Python library for beautiful terminal output — colored printing, tables, progress bars, syntax highlighting, bar charts, QR codes, and more. Zero dependencies.",
