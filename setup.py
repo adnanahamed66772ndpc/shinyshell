@@ -6,7 +6,7 @@ with open("README.md", "r", encoding="utf-8") as f:
 
 setup(
     name="shinyshell",
-    version="0.6.1",
+    version="0.6.2",
     author="Adnan Ahamed Himal",
     author_email="hello@adnanahamedhimal.com",
     description="Python library for beautiful terminal output — colored printing, tables, progress bars, syntax highlighting, bar charts, QR codes, and more. Zero dependencies.",

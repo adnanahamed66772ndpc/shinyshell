@@ -190,7 +190,7 @@ class TestVersion:
 
     def test_version_attribute(self):
         from shinyshell import __version__
-        assert __version__ == "0.6.1"
+        assert __version__ == "0.6.2"
 
     def test_version_method(self, sh, capsys):
         sh.version()

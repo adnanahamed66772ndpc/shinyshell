@@ -2,8 +2,15 @@
 
 import sys
 import os
-import tty
-import termios
+
+# tty/termios are Unix-only (not available on Windows)
+try:
+    import tty
+    import termios
+    _HAS_UNIX_TTY = True
+except ImportError:
+    _HAS_UNIX_TTY = False
+
 import select as _select
 
 from .icons import _ICONS
@@ -89,6 +96,9 @@ class _InteractiveMixin:
 
         index = sh.menu(['Deploy', 'Rollback', 'Status', 'Exit'])
         """
+        if not _HAS_UNIX_TTY:
+            self.warning("Arrow-key menu not available on Windows. Use sh.choice() instead.")
+            return None
         if not options:
             return None
         selected = 0

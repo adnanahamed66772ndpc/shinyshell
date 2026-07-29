@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "shinyshell"
-version = "0.6.1"
+version = "0.6.2"
 description = "Python library for beautiful terminal output — colored printing, tables, progress bars, charts, QR codes, and more. Zero dependencies."
 readme = "README.md"
 license = { text = "MIT" }
