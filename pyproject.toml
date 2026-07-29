@@ -9,7 +9,7 @@ description = "Python library for beautiful terminal output — colored printing
 readme = "README.md"
 license = { text = "MIT" }
 authors = [
-    { name = "Adnan Ahamed Himal", email = "hello@adnanahamedhimal.com" },
+    { name = "Adnan Ahamed Himal", email = "shovroahamed6677@zohomail.com" },
 ]
 keywords = [
     "terminal", "cli", "console", "pretty", "beautiful", "output",
